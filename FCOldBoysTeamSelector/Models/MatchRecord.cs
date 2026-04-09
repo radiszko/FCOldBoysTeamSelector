@@ -25,6 +25,7 @@ public class MatchPlayerEntry
 {
     public int Id { get; set; }
     public int MatchRecordId { get; set; }
+    [System.Text.Json.Serialization.JsonIgnore]
     public MatchRecord MatchRecord { get; set; } = null!;
     public int PlayerId { get; set; }
     public string PlayerName { get; set; } = "";

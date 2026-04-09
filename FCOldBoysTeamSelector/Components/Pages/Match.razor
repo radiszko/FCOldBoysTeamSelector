@@ -1,11 +1,7 @@
 @page "/match"
-@rendermode InteractiveServer
-@using FCOldBoysTeamSelector.Data
 @using FCOldBoysTeamSelector.Models
-@using FCOldBoysTeamSelector.Services
 @using FCOldBoysTeamSelector.Helpers
-@using Microsoft.EntityFrameworkCore
-@inject AppDbContext Db
+@inject LocalStorageService Storage
 @inject TeamGeneratorService Generator
 @inject IJSRuntime JS
 
@@ -482,8 +478,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        allPlayers = await Db.Players.ToListAsync();
-        // Domyślnie oznacz jako GK tych, którzy mają ustawioną flagę IsGoalkeeper
+        allPlayers = await Storage.GetPlayersAsync();
         matchGkIds = allPlayers.Where(p => p.IsGoalkeeper).Select(p => p.Id).ToHashSet();
     }
 
@@ -787,26 +782,27 @@ else
         saveSuccess = null;
         try
         {
-            var record = new FCOldBoysTeamSelector.Models.MatchRecord
+            var records = await Storage.GetMatchRecordsAsync();
+            var newId   = records.Count > 0 ? records.Max(r => r.Id) + 1 : 1;
+
+            var record = new MatchRecord
             {
+                Id          = newId,
                 GeneratedAt = DateTime.Now,
                 MatchDay    = matchDay,
                 MatchTime   = MatchTime,
                 MatchVenue  = matchVenue
             };
-            Db.MatchRecords.Add(record);
-            await Db.SaveChangesAsync();
 
-            var entries = new List<FCOldBoysTeamSelector.Models.MatchPlayerEntry>();
             foreach (var p in team1.Players)
-                entries.Add(new() { MatchRecordId = record.Id, PlayerId = p.Id, PlayerName = p.Name, PlayerNationality = p.Nationality ?? "", TeamNumber = 1 });
+                record.PlayerEntries.Add(new() { MatchRecordId = newId, PlayerId = p.Id, PlayerName = p.Name, PlayerNationality = p.Nationality ?? "", TeamNumber = 1 });
             foreach (var p in team2.Players)
-                entries.Add(new() { MatchRecordId = record.Id, PlayerId = p.Id, PlayerName = p.Name, PlayerNationality = p.Nationality ?? "", TeamNumber = 2 });
+                record.PlayerEntries.Add(new() { MatchRecordId = newId, PlayerId = p.Id, PlayerName = p.Name, PlayerNationality = p.Nationality ?? "", TeamNumber = 2 });
             foreach (var p in reservePlayers)
-                entries.Add(new() { MatchRecordId = record.Id, PlayerId = p.Id, PlayerName = p.Name, PlayerNationality = p.Nationality ?? "", TeamNumber = 0 });
+                record.PlayerEntries.Add(new() { MatchRecordId = newId, PlayerId = p.Id, PlayerName = p.Name, PlayerNationality = p.Nationality ?? "", TeamNumber = 0 });
 
-            Db.MatchPlayerEntries.AddRange(entries);
-            await Db.SaveChangesAsync();
+            records.Add(record);
+            await Storage.SaveMatchRecordsAsync(records);
             saveSuccess = true;
         }
         catch { saveSuccess = false; }

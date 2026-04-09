@@ -1,10 +1,7 @@
 @page "/statistics"
-@rendermode InteractiveServer
-@using FCOldBoysTeamSelector.Data
 @using FCOldBoysTeamSelector.Models
 @using FCOldBoysTeamSelector.Helpers
-@using Microsoft.EntityFrameworkCore
-@inject AppDbContext Db
+@inject LocalStorageService Storage
 
 <PageTitle>Statystyki</PageTitle>
 
@@ -189,9 +186,7 @@ else
 
     private async Task LoadData()
     {
-        matches = await Db.MatchRecords
-            .Include(m => m.PlayerEntries)
-            .ToListAsync();
+        matches = await Storage.GetMatchRecordsAsync();
         BuildPlayerStats();
     }
 
@@ -256,18 +251,16 @@ else
         if (match == null) return;
         match.Score1 = editScore1;
         match.Score2 = editScore2;
-        await Db.SaveChangesAsync();
+        await Storage.SaveMatchRecordsAsync(matches);
         CancelEdit();
         BuildPlayerStats();
     }
 
     private async Task DeleteMatch(int matchId)
     {
-        var match = await Db.MatchRecords.Include(m => m.PlayerEntries).FirstOrDefaultAsync(m => m.Id == matchId);
-        if (match == null) return;
-        Db.MatchRecords.Remove(match);
-        await Db.SaveChangesAsync();
-        await LoadData();
+        matches.RemoveAll(m => m.Id == matchId);
+        await Storage.SaveMatchRecordsAsync(matches);
+        BuildPlayerStats();
     }
 
     private class PlayerStatRow

@@ -1,0 +1,12 @@
+.DS_Store
+RadiszkoGit
+RadiszkoGit.pub
+
+# .NET build output
+bin/
+obj/
+
+# SQLite databases
+*.db
+*.db-shm
+*.db-wal
