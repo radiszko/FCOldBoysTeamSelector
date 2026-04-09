@@ -1,0 +1,284 @@
+@page "/statistics"
+@rendermode InteractiveServer
+@using FCOldBoysTeamSelector.Data
+@using FCOldBoysTeamSelector.Models
+@using FCOldBoysTeamSelector.Helpers
+@using Microsoft.EntityFrameworkCore
+@inject AppDbContext Db
+
+<PageTitle>Statystyki</PageTitle>
+
+<h1 class="mb-3">📊 Statystyki i Historia</h1>
+
+<!-- ZAKŁADKI -->
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+        <button class="nav-link @(activeTab == "history" ? "active" : "")" @onclick='() => activeTab = "history"'>
+            📅 Historia meczów
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link @(activeTab == "players" ? "active" : "")" @onclick='() => activeTab = "players"'>
+            👤 Statystyki zawodników
+        </button>
+    </li>
+</ul>
+
+@if (activeTab == "history")
+{
+    <!-- HISTORIA MECZÓW -->
+    @if (matches.Count == 0)
+    {
+        <div class="alert alert-info">
+            Brak historii meczów. Wygeneruj skład na stronie <a href="/match">Generuj Skład</a> i kliknij "Zapisz do historii".
+        </div>
+    }
+    else
+    {
+        @foreach (var match in matches.OrderByDescending(m => m.GeneratedAt))
+        {
+            var t1Players = match.PlayerEntries.Where(e => e.TeamNumber == 1).OrderBy(e => e.PlayerName).ToList();
+            var t2Players = match.PlayerEntries.Where(e => e.TeamNumber == 2).OrderBy(e => e.PlayerName).ToList();
+            var reserves  = match.PlayerEntries.Where(e => e.TeamNumber == 0).OrderBy(e => e.PlayerName).ToList();
+            var resultClass = match.WinningTeam == null ? "" :
+                              match.WinningTeam == 0 ? "border-secondary" :
+                              match.WinningTeam == 1 ? "border-success" : "border-danger";
+
+            <div class="card mb-3 shadow-sm @resultClass" style="@(match.WinningTeam != null ? "border-width:2px" : "")">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <strong>@match.MatchDay @match.MatchTime</strong>
+                        @if (!string.IsNullOrEmpty(match.MatchVenue))
+                        {
+                            <span class="text-muted ms-2">— @match.MatchVenue</span>
+                        }
+                        <span class="text-muted small ms-2">(@match.GeneratedAt.ToString("dd.MM.yyyy HH:mm"))</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        @if (editingMatchId == match.Id)
+                        {
+                            <input type="number" class="form-control form-control-sm" style="width:60px"
+                                   @bind="editScore1" min="0" placeholder="T1" />
+                            <span>:</span>
+                            <input type="number" class="form-control form-control-sm" style="width:60px"
+                                   @bind="editScore2" min="0" placeholder="T2" />
+                            <button class="btn btn-sm btn-success" @onclick="() => SaveScore(match.Id)">✓</button>
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="CancelEdit">✕</button>
+                        }
+                        else
+                        {
+                            <span class="badge @(match.WinningTeam == null ? "bg-secondary" : match.WinningTeam == 1 ? "bg-success" : match.WinningTeam == 2 ? "bg-danger" : "bg-dark") fs-6">
+                                @(match.Score1.HasValue ? $"{match.Score1}:{match.Score2}" : "— : —")
+                            </span>
+                            <button class="btn btn-sm btn-outline-primary" @onclick="() => StartEdit(match)">
+                                ✏️ Wynik
+                            </button>
+                        }
+                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteMatch(match.Id)">🗑️</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <h6 class="text-success fw-bold">🟢 Drużyna 1 (@t1Players.Count)</h6>
+                            <ol class="ps-3 mb-0">
+                                @foreach (var e in t1Players)
+                                {
+                                    <li>@CountryHelper.ToFlagEmoji(e.PlayerNationality) @e.PlayerName</li>
+                                }
+                            </ol>
+                        </div>
+                        <div class="col-md-5">
+                            <h6 class="text-danger fw-bold">🔴 Drużyna 2 (@t2Players.Count)</h6>
+                            <ol class="ps-3 mb-0">
+                                @foreach (var e in t2Players)
+                                {
+                                    <li>@CountryHelper.ToFlagEmoji(e.PlayerNationality) @e.PlayerName</li>
+                                }
+                            </ol>
+                        </div>
+                        @if (reserves.Count > 0)
+                        {
+                            <div class="col-md-2">
+                                <h6 class="text-warning fw-bold">🪑 Rezerwa</h6>
+                                <ul class="ps-3 mb-0">
+                                    @foreach (var e in reserves)
+                                    {
+                                        <li>@e.PlayerName</li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    }
+}
+else
+{
+    <!-- STATYSTYKI ZAWODNIKÓW -->
+    @if (playerStats.Count == 0)
+    {
+        <div class="alert alert-info">
+            Brak danych statystycznych. Rozegraj i zapisz kilka meczów, aby zobaczyć statystyki.
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm">
+            <div class="card-header fw-bold">👤 Statystyki zawodników (wg zapisanych meczów)</div>
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Zawodnik</th>
+                            <th class="text-center">Mecze</th>
+                            <th class="text-center text-success">Wygrane</th>
+                            <th class="text-center text-warning">Remisy</th>
+                            <th class="text-center text-danger">Przegrane</th>
+                            <th class="text-center">% wygranych</th>
+                            <th class="text-center">Obecności</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in playerStats.OrderByDescending(s => s.WinRate).ThenByDescending(s => s.Matches))
+                        {
+                            <tr>
+                                <td>
+                                    <span style="font-size:1.1rem">@CountryHelper.ToFlagEmoji(s.Nationality)</span>
+                                    @s.Name
+                                </td>
+                                <td class="text-center">@s.Matches</td>
+                                <td class="text-center fw-bold text-success">@s.Wins</td>
+                                <td class="text-center text-warning">@s.Draws</td>
+                                <td class="text-center text-danger">@s.Losses</td>
+                                <td class="text-center">
+                                    <div class="progress" style="height:16px; min-width:80px">
+                                        <div class="progress-bar bg-success" style="width:@(s.WinRate)%">
+                                            @if (s.WinRate > 15) { <span class="small">@(s.WinRate.ToString("F0"))%</span> }
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">@s.Appearances</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer text-muted small">
+                Uwzględniane są tylko mecze z wpisanym wynikiem. Obecności = łączna liczba meczów (z rezerwa włącznie).
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private string activeTab = "history";
+    private List<MatchRecord> matches = [];
+    private List<PlayerStatRow> playerStats = [];
+
+    private int? editingMatchId;
+    private int? editScore1;
+    private int? editScore2;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        matches = await Db.MatchRecords
+            .Include(m => m.PlayerEntries)
+            .ToListAsync();
+        BuildPlayerStats();
+    }
+
+    private void BuildPlayerStats()
+    {
+        var withResults = matches.Where(m => m.Score1.HasValue && m.Score2.HasValue).ToList();
+
+        // Zbierz unikalne kombinacje PlayerId+PlayerName+Nationality
+        var allEntries = matches.SelectMany(m => m.PlayerEntries).ToList();
+        var playerKeys = allEntries
+            .GroupBy(e => e.PlayerId)
+            .Select(g => new { PlayerId = g.Key, Name = g.First().PlayerName, Nationality = g.First().PlayerNationality })
+            .ToList();
+
+        playerStats = playerKeys.Select(pk =>
+        {
+            var appearances = allEntries.Count(e => e.PlayerId == pk.PlayerId);
+
+            int wins = 0, draws = 0, losses = 0, matchCount = 0;
+            foreach (var m in withResults)
+            {
+                var entry = m.PlayerEntries.FirstOrDefault(e => e.PlayerId == pk.PlayerId && e.TeamNumber != 0);
+                if (entry == null) continue;
+                matchCount++;
+                var winTeam = m.WinningTeam;
+                if (winTeam == 0) draws++;
+                else if (winTeam == entry.TeamNumber) wins++;
+                else losses++;
+            }
+
+            return new PlayerStatRow
+            {
+                Name        = pk.Name,
+                Nationality = pk.Nationality,
+                Matches     = matchCount,
+                Wins        = wins,
+                Draws       = draws,
+                Losses      = losses,
+                Appearances = appearances,
+                WinRate     = matchCount == 0 ? 0 : (double)wins / matchCount * 100
+            };
+        }).Where(s => s.Appearances > 0).ToList();
+    }
+
+    private void StartEdit(MatchRecord match)
+    {
+        editingMatchId = match.Id;
+        editScore1 = match.Score1;
+        editScore2 = match.Score2;
+    }
+
+    private void CancelEdit()
+    {
+        editingMatchId = null;
+        editScore1 = null;
+        editScore2 = null;
+    }
+
+    private async Task SaveScore(int matchId)
+    {
+        var match = matches.FirstOrDefault(m => m.Id == matchId);
+        if (match == null) return;
+        match.Score1 = editScore1;
+        match.Score2 = editScore2;
+        await Db.SaveChangesAsync();
+        CancelEdit();
+        BuildPlayerStats();
+    }
+
+    private async Task DeleteMatch(int matchId)
+    {
+        var match = await Db.MatchRecords.Include(m => m.PlayerEntries).FirstOrDefaultAsync(m => m.Id == matchId);
+        if (match == null) return;
+        Db.MatchRecords.Remove(match);
+        await Db.SaveChangesAsync();
+        await LoadData();
+    }
+
+    private class PlayerStatRow
+    {
+        public string Name        { get; set; } = "";
+        public string Nationality { get; set; } = "";
+        public int Matches     { get; set; }
+        public int Wins        { get; set; }
+        public int Draws       { get; set; }
+        public int Losses      { get; set; }
+        public int Appearances { get; set; }
+        public double WinRate  { get; set; }
+    }
+}

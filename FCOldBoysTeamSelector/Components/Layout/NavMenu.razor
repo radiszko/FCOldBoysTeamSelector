@@ -1,0 +1,30 @@
+﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">⚽ FC Old Boys</a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="nav flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="match" Match="NavLinkMatch.All">
+                <span class="bi bi-play-circle-fill" aria-hidden="true"></span> Generuj Skład
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="admin/players">
+                <span class="bi bi-people-fill" aria-hidden="true"></span> Zawodnicy
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="statistics">
+                <span class="bi bi-bar-chart-fill" aria-hidden="true"></span> Statystyki
+            </NavLink>
+        </div>
+    </nav>
+</div>
+

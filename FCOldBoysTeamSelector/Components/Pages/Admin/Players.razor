@@ -1,0 +1,296 @@
+@page "/admin/players"
+@rendermode InteractiveServer
+@using FCOldBoysTeamSelector.Data
+@using FCOldBoysTeamSelector.Models
+@using FCOldBoysTeamSelector.Helpers
+@using Microsoft.EntityFrameworkCore
+@inject AppDbContext Db
+
+<PageTitle>Zarządzanie Zawodnikami</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">⚽ Zarządzanie Zawodnikami</h1>
+    <button class="btn btn-success" @onclick="AddNew">
+        <i class="bi bi-plus-lg"></i> Dodaj zawodnika
+    </button>
+</div>
+
+@if (showForm)
+{
+    <div class="card mb-4 border-primary shadow-sm">
+        <div class="card-header bg-primary text-white fw-bold">
+            @(editingPlayer.Id == 0 ? "Nowy zawodnik" : $"Edycja: {editingPlayer.Name}")
+        </div>
+        <div class="card-body">
+            <EditForm Model="editingPlayer" OnValidSubmit="Save" FormName="player-form">
+                <DataAnnotationsValidator />
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Imię i Nazwisko</label>
+                        <InputText class="form-control" @bind-Value="editingPlayer.Name" placeholder="np. Jan Kowalski" />
+                        <ValidationMessage For="() => editingPlayer.Name" class="text-danger small" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Flaga (narodowość)</label>
+                        <InputSelect class="form-select" @bind-Value="editingPlayer.Nationality">
+                            @foreach (var c in CountryHelper.Countries)
+                            {
+                                <option value="@c.Code">@CountryHelper.ToFlagEmoji(c.Code) @c.Name</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Grupa (opcjonalnie)</label>
+                        <select class="form-select" @bind="groupCode">
+                            <option value="">Brak grupy</option>
+                            <option value="1">Gr. 1 — zawsze razem</option>
+                            <option value="2">Gr. 2 — zawsze razem</option>
+                            <option value="3">Gr. 3 — zawsze razem</option>
+                            <option value="4">Gr. 4 — zawsze razem</option>
+                            <option value="GK">🧤 Bramkarz (GK)</option>
+                        </select>
+                        <div class="form-text">Gr. 1-4 trzymają się razem. GK domyślnie wyłączony z siły składu.</div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-2">
+                    <div class="col-6 col-md-2">
+                        <label class="form-label fw-semibold">⚡ Szybkość</label>
+                        <InputNumber class="form-control text-center" @bind-Value="editingPlayer.Speed" min="1" max="10" />
+                        <ValidationMessage For="() => editingPlayer.Speed" class="text-danger small" />
+                        <div class="progress mt-1" style="height:6px"><div class="progress-bar bg-warning" style="width:@(editingPlayer.Speed*10)%"></div></div>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label fw-semibold">🏃 Wybieganie</label>
+                        <InputNumber class="form-control text-center" @bind-Value="editingPlayer.Stamina" min="1" max="10" />
+                        <ValidationMessage For="() => editingPlayer.Stamina" class="text-danger small" />
+                        <div class="progress mt-1" style="height:6px"><div class="progress-bar bg-success" style="width:@(editingPlayer.Stamina*10)%"></div></div>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label fw-semibold">🛡️ Obrona</label>
+                        <InputNumber class="form-control text-center" @bind-Value="editingPlayer.Defense" min="1" max="10" />
+                        <ValidationMessage For="() => editingPlayer.Defense" class="text-danger small" />
+                        <div class="progress mt-1" style="height:6px"><div class="progress-bar bg-info" style="width:@(editingPlayer.Defense*10)%"></div></div>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label fw-semibold">⚔️ Atak</label>
+                        <InputNumber class="form-control text-center" @bind-Value="editingPlayer.Attack" min="1" max="10" />
+                        <ValidationMessage For="() => editingPlayer.Attack" class="text-danger small" />
+                        <div class="progress mt-1" style="height:6px"><div class="progress-bar bg-danger" style="width:@(editingPlayer.Attack*10)%"></div></div>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label fw-semibold">💪 Siła</label>
+                        <InputNumber class="form-control text-center" @bind-Value="editingPlayer.Strength" min="1" max="10" />
+                        <ValidationMessage For="() => editingPlayer.Strength" class="text-danger small" />
+                        <div class="progress mt-1" style="height:6px"><div class="progress-bar bg-secondary" style="width:@(editingPlayer.Strength*10)%"></div></div>
+                    </div>
+                </div>
+
+                <div class="mt-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-floppy"></i> Zapisz
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" @onclick="Cancel">
+                        Anuluj
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@if (players.Count == 0)
+{
+    <div class="alert alert-info">
+        Brak zawodników. Dodaj pierwszego klikając przycisk powyżej.
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Zawodnik</th>
+                    <th class="text-center">Grupa</th>
+                    <th class="text-center" title="Szybkość">⚡ Szybk.</th>
+                    <th class="text-center" title="Wybieganie">🏃 Wybieg.</th>
+                    <th class="text-center" title="Obrona">🛡️ Obrona</th>
+                    <th class="text-center" title="Atak">⚔️ Atak</th>
+                    <th class="text-center" title="Siła">💪 Siła</th>
+                    <th class="text-center">Łącznie</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var player in players.OrderBy(p => p.Name))
+                {
+                    <tr>
+                        <td class="fw-semibold">
+                            @if (!string.IsNullOrEmpty(player.Nationality))
+                            {
+                                <span class="me-1" style="font-size:1.2rem">@CountryHelper.ToFlagEmoji(player.Nationality)</span>
+                            }
+                            @player.Name
+                        </td>
+                        <td class="text-center">
+                            @if (player.IsGoalkeeper)
+                            {
+                                <span class="badge bg-warning text-dark">🧤 GK</span>
+                            }
+                            else if (player.GroupId.HasValue)
+                            {
+                                <span class="badge bg-info text-dark">Gr. @player.GroupId</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">-</span>
+                            }
+                        </td>
+                        <td class="text-center">@RatingBadge(player.Speed)</td>
+                        <td class="text-center">@RatingBadge(player.Stamina)</td>
+                        <td class="text-center">@RatingBadge(player.Defense)</td>
+                        <td class="text-center">@RatingBadge(player.Attack)</td>
+                        <td class="text-center">@RatingBadge(player.Strength)</td>
+                        <td class="text-center">
+                            <strong class="text-primary">@player.TotalRating</strong>
+                            <small class="text-muted">/50</small>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1 justify-content-end">
+                                <button class="btn btn-sm btn-outline-primary" @onclick="() => Edit(player)">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" @onclick="() => Delete(player)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="text-muted small">Łącznie zawodników: <strong>@players.Count</strong></div>
+}
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-success mt-3 alert-dismissible">
+        @message
+        <button type="button" class="btn-close" @onclick="() => message = string.Empty"></button>
+    </div>
+}
+
+@code {
+    private List<Player> players = [];
+    private Player editingPlayer = new();
+    private bool showForm = false;
+    private string message = string.Empty;
+    private string groupCode = ""; // "", "1"-"4", "GK"
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPlayers();
+    }
+
+    private async Task LoadPlayers()
+    {
+        players = await Db.Players.ToListAsync();
+    }
+
+    private void AddNew()
+    {
+        editingPlayer = new Player();
+        groupCode = "";
+        showForm = true;
+    }
+
+    private void Edit(Player player)
+    {
+        editingPlayer = new Player
+        {
+            Id = player.Id,
+            Name = player.Name,
+            Speed = player.Speed,
+            Stamina = player.Stamina,
+            Defense = player.Defense,
+            Attack = player.Attack,
+            Strength = player.Strength,
+            GroupId = player.GroupId,
+            IsGoalkeeper = player.IsGoalkeeper,
+            Nationality = player.Nationality
+        };
+        groupCode = player.IsGoalkeeper ? "GK" : player.GroupId?.ToString() ?? "";
+        showForm = true;
+    }
+
+    private async Task Save()
+    {
+        // Zastosuj groupCode → GroupId + IsGoalkeeper
+        if (groupCode == "GK")
+        {
+            editingPlayer.IsGoalkeeper = true;
+            editingPlayer.GroupId = null;
+        }
+        else if (int.TryParse(groupCode, out int gid))
+        {
+            editingPlayer.IsGoalkeeper = false;
+            editingPlayer.GroupId = gid;
+        }
+        else
+        {
+            editingPlayer.IsGoalkeeper = false;
+            editingPlayer.GroupId = null;
+        }
+
+        if (editingPlayer.Id == 0)
+        {
+            Db.Players.Add(editingPlayer);
+            message = $"Dodano: {editingPlayer.Name}";
+        }
+        else
+        {
+            var existing = await Db.Players.FindAsync(editingPlayer.Id);
+            if (existing != null)
+            {
+                existing.Name = editingPlayer.Name;
+                existing.Speed = editingPlayer.Speed;
+                existing.Stamina = editingPlayer.Stamina;
+                existing.Defense = editingPlayer.Defense;
+                existing.Attack = editingPlayer.Attack;
+                existing.Strength = editingPlayer.Strength;
+                existing.GroupId = editingPlayer.GroupId;
+                existing.IsGoalkeeper = editingPlayer.IsGoalkeeper;
+                existing.Nationality = editingPlayer.Nationality;
+                message = $"Zapisano: {editingPlayer.Name}";
+            }
+        }
+
+        await Db.SaveChangesAsync();
+        await LoadPlayers();
+        showForm = false;
+    }
+
+    private async Task Delete(Player player)
+    {
+        Db.Players.Remove(player);
+        await Db.SaveChangesAsync();
+        await LoadPlayers();
+        message = $"Usunięto: {player.Name}";
+    }
+
+    private void Cancel()
+    {
+        showForm = false;
+    }
+
+    private RenderFragment RatingBadge(int value) => builder =>
+    {
+        var color = value >= 8 ? "bg-success" : value >= 5 ? "bg-warning text-dark" : "bg-danger";
+        builder.OpenElement(0, "span");
+        builder.AddAttribute(1, "class", $"badge {color}");
+        builder.AddContent(2, value);
+        builder.CloseElement();
+    };
+}

@@ -1,0 +1,921 @@
+@page "/match"
+@rendermode InteractiveServer
+@using FCOldBoysTeamSelector.Data
+@using FCOldBoysTeamSelector.Models
+@using FCOldBoysTeamSelector.Services
+@using FCOldBoysTeamSelector.Helpers
+@using Microsoft.EntityFrameworkCore
+@inject AppDbContext Db
+@inject TeamGeneratorService Generator
+@inject IJSRuntime JS
+
+<PageTitle>Generuj Skład</PageTitle>
+
+<h1 class="mb-3">⚽ Generuj Skład</h1>
+
+@if (allPlayers.Count == 0)
+{
+    <div class="alert alert-warning">
+        Brak zawodników w bazie. <a href="/admin/players">Dodaj zawodników</a> w panelu administracyjnym.
+    </div>
+}
+else
+{
+    <!-- NAGŁÓWEK MECZU -->
+    <div class="card mb-4 shadow-sm border-success">
+        <div class="card-header bg-success text-white fw-bold">📅 Informacje o meczu</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-sm-4">
+                    <label class="form-label fw-semibold">Dzień tygodnia</label>
+                    <select class="form-select" @bind="matchDay">
+                        <option value="">— wybierz —</option>
+                        <option>Poniedziałek</option>
+                        <option>Wtorek</option>
+                        <option>Środa</option>
+                        <option>Czwartek</option>
+                        <option>Piątek</option>
+                        <option>Sobota</option>
+                        <option>Niedziela</option>
+                    </select>
+                </div>
+                <div class="col-sm-4">
+                    <label class="form-label fw-semibold">Godzina</label>
+                    <div class="d-flex gap-1 align-items-center">
+                        <select class="form-select" @bind="matchHourStart">
+                            @for (int h = 7; h <= 22; h++) { var hh = h; <option value="@hh">@hh.ToString("D2")</option> }
+                        </select>
+                        <span class="fw-bold">:</span>
+                        <select class="form-select" @bind="matchMinStart" style="max-width:80px">
+                            @foreach (var m in new[]{0,5,10,15,20,25,30,35,40,45,50,55}) { var mm = m; <option value="@mm">@mm.ToString("D2")</option> }
+                        </select>
+                        <span class="text-muted px-1">—</span>
+                        <select class="form-select" @bind="matchHourEnd">
+                            @for (int h = 7; h <= 23; h++) { var hh = h; <option value="@hh">@hh.ToString("D2")</option> }
+                        </select>
+                        <span class="fw-bold">:</span>
+                        <select class="form-select" @bind="matchMinEnd" style="max-width:80px">
+                            @foreach (var m in new[]{0,5,10,15,20,25,30,35,40,45,50,55}) { var mm = m; <option value="@mm">@mm.ToString("D2")</option> }
+                        </select>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <label class="form-label fw-semibold">Stadion / Miejsce</label>
+                    <input class="form-control" @bind="matchVenue" placeholder="np. Manhattan Park Stadium" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- PANEL WYBORU ZAWODNIKÓW -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-bold">Zawodnicy</span>
+                    <div class="d-flex gap-2 align-items-center">
+                        <span class="badge bg-primary fs-6">@selectedIds.Count</span>
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="SelectAll">Wszyscy</button>
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="ClearAll">Wyczyść</button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        @foreach (var player in allPlayers.OrderBy(p => p.Name))
+                        {
+                            var isSelected = selectedIds.Contains(player.Id);
+                            var isReserve  = reserveIds.Contains(player.Id);
+                            var isGk       = matchGkIds.Contains(player.Id);
+                            var pinTeam    = pinnedTeam.TryGetValue(player.Id, out var pt) ? pt : 0;
+                            var isCapAny   = captain1Id == player.Id || captain2Id == player.Id;
+                            var rowClass   = isReserve ? "list-group-item-warning"
+                                           : isGk && isSelected && !isReserve ? "list-group-item-warning"
+                                           : isCapAny && isSelected ? "list-group-item-info"
+                                           : pinTeam == 1 ? "list-group-item-success"
+                                           : pinTeam == 2 ? "list-group-item-danger"
+                                           : isSelected ? "list-group-item-primary" : "";
+                            <li class="list-group-item list-group-item-action @rowClass"
+                                style="cursor:pointer" @onclick="() => TogglePlayer(player.Id)">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center gap-1 flex-wrap">
+                                        <input type="checkbox" class="form-check-input" checked="@isSelected"
+                                               @onclick:stopPropagation="true" @onchange="() => TogglePlayer(player.Id)" />
+                                        <span class="fw-semibold">
+                                            @if (!string.IsNullOrEmpty(player.Nationality))
+                                            {
+                                                <span style="font-size:1.1rem">@CountryHelper.ToFlagEmoji(player.Nationality)</span>
+                                            }
+                                            @player.Name
+                                        </span>
+                                        @if (isReserve) { <span class="badge bg-warning text-dark">Rez.</span> }
+                                        @if (isGk && isSelected) { <span class="badge bg-warning text-dark">🧤 GK</span> }
+                                        @if (captain1Id == player.Id) { <span class="badge text-dark" style="background:#ffc107;border:2px solid #856404;font-weight:900">C 🟢</span> }
+                                        @if (captain2Id == player.Id) { <span class="badge text-dark" style="background:#ffc107;border:2px solid #856404;font-weight:900">C 🔴</span> }
+                                        @if (player.GroupId.HasValue) { <span class="badge bg-info text-dark">Gr.@player.GroupId</span> }
+                                    </div>
+                                    <div class="d-flex gap-1 align-items-center">
+                                        @if (isSelected && !isReserve)
+                                        {
+                                            <button class="btn btn-sm @(isGk ? "btn-warning" : "btn-outline-secondary") px-2 py-0"
+                                                    style="font-size:.75rem" title="@(isGk ? "Odznacz bramkarza" : "Oznacz jako bramkarz GK")"
+                                                    @onclick:stopPropagation="true" @onclick="() => ToggleGk(player.Id)">🧤</button>
+                                            <button class="btn btn-sm @(pinTeam == 1 ? "btn-success" : "btn-outline-success") px-2 py-0"
+                                                    style="font-size:.75rem" title="Przypnij do Drużyny 1"
+                                                    @onclick:stopPropagation="true" @onclick="() => TogglePin(player.Id, 1)">🟢</button>
+                                            <button class="btn btn-sm @(pinTeam == 2 ? "btn-danger" : "btn-outline-danger") px-2 py-0"
+                                                    style="font-size:.75rem" title="Przypnij do Drużyny 2"
+                                                    @onclick:stopPropagation="true" @onclick="() => TogglePin(player.Id, 2)">🔴</button>
+                                        }
+                                        <span class="badge bg-secondary">@player.TotalRating</span>
+                                    </div>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+                <div class="card-footer text-muted small">
+                    Aktywnych: <strong>@ActiveCount</strong> | GK: @matchGkIds.Count(id => selectedIds.Contains(id) && !reserveIds.Contains(id)) | Przyp. 🟢: @pinnedTeam.Values.Count(v => v == 1) | Przyp. 🔴: @pinnedTeam.Values.Count(v => v == 2) | Rezerwa: @reserveIds.Count
+                </div>
+            </div>
+            @if (pinnedTeam.Count > 0)
+            {
+                <div class="alert alert-info mt-2 py-2 small">
+                    💡 Przypięci zawodnicy trafią do wybranej drużyny. Reszta zostanie dobrana optymalnie.
+                    <button class="btn btn-sm btn-link p-0 ms-2" @onclick="ClearPins">Usuń przypięcia</button>
+                </div>
+            }
+        </div>
+
+        <!-- PANEL GENEROWANIA -->
+        <div class="col-lg-7">
+            <div class="d-flex gap-2 mb-3">
+                <button class="btn btn-success btn-lg flex-grow-1"
+                        @onclick="GenerateTeams"
+                        disabled="@(ActiveCount < 2)">
+                    ⚽ Generuj Skład
+                </button>
+                @if (team1 != null)
+                {
+                    <button class="btn btn-outline-primary btn-lg" @onclick="RegenerateTeams" title="Wygeneruj ponownie (zachowuje przypięcia)">
+                        🔄 Losuj ponownie
+                    </button>
+                    <button class="btn btn-outline-danger btn-lg" @onclick="ClearTeams" title="Wyczyść wygenerowany skład">
+                        🗑️
+                    </button>
+                }
+            </div>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger">@errorMessage</div>
+            }
+
+            @if (team1 != null && team2 != null)
+            {
+                <div class="alert @(balanceScore <= 5 ? "alert-success" : balanceScore <= 15 ? "alert-warning" : "alert-danger") mb-3">
+                    <strong>Wyrównanie:</strong>
+                    @if (balanceScore == 0) {<span> Idealne! ✅</span>}
+                    else if (balanceScore <= 5) {<span> Bardzo dobre (@balanceScore.ToString("F1")) ✅</span>}
+                    else if (balanceScore <= 15) {<span> Dobre (@balanceScore.ToString("F1")) ⚠️</span>}
+                    else {<span> Trudne do wyrównania (@balanceScore.ToString("F1")) ❌</span>}
+                </div>
+
+                <!-- DRUŻYNY z drag & drop -->
+                <div class="row g-3 mb-3">
+                    <!-- DRUŻYNA 1 -->
+                    <div class="col-md-6">
+                        <div class="card border-success shadow-sm h-100">
+                            <div class="card-header bg-success text-white fw-bold d-flex justify-content-between align-items-center">
+                                <span>🟢 Drużyna 1</span>
+                                <span class="badge bg-light text-dark">@team1.Count graczy</span>
+                            </div>
+                            <div class="card-body p-0 @(dragOverZone == 1 ? "bg-success bg-opacity-10" : "")"
+                                 @ondragover:preventDefault="true"
+                                 @ondragenter="() => dragOverZone = 1"
+                                 @ondrop="() => DropToZone(1)">
+                                <ul class="list-group list-group-flush">
+                                    @for (int i = 0; i < team1.Players.Count; i++)
+                                    {
+                                        var p = team1.Players[i];
+                                        var idx = i; // capture for lambda
+                                        var isGkP = matchGkIds.Contains(p.Id);
+                                        var isCap = captain1Id == p.Id;
+                                        <li class="list-group-item d-flex justify-content-between align-items-center ps-2 @(isGkP ? "list-group-item-warning" : isCap ? "list-group-item-info" : "")"
+                                            draggable="true"
+                                            @ondragstart="() => StartDrag(p.Id, 1)"
+                                            @ondragend="() => { draggedPlayerId = null; dragOverZone = null; }"
+                                            style="cursor:grab">
+                                            <span class="me-auto">
+                                                <span class="text-muted me-1" style="font-size:.8rem">@(idx+1).</span>
+                                                @if (!string.IsNullOrEmpty(p.Nationality))
+                                                {<span style="font-size:1.05rem;margin-right:3px">@CountryHelper.ToFlagEmoji(p.Nationality)</span>}
+                                                @p.Name
+                                                @if (isCap) {<span class="badge text-dark ms-1" style="background:#ffc107;border:2px solid #856404;font-weight:900">C</span>}
+                                                @if (isGkP) {<span class="badge bg-warning text-dark ms-1">🧤 GK</span>}
+                                                @if (pinnedTeam.TryGetValue(p.Id, out var pt1) && pt1 == 1)
+                                                {<span class="ms-1 text-success" style="font-size:.8rem" title="Przypięty do T1">📌</span>}
+                                            </span>
+                                            <button class="btn btn-sm @(isCap ? "btn-warning" : "btn-outline-secondary") py-0 px-1 ms-1" style="font-weight:900;font-size:.8rem" title="@(isCap ? "Usuń opaski kapitana" : "Ustaw kapitanem")"
+                                                    @onclick="() => ToggleCaptain(1, p.Id)">C</button>
+                                            <button class="btn btn-sm btn-outline-secondary py-0 px-1 ms-1" title="Wyżej"
+                                                    @onclick="() => MoveInTeam(team1.Players, p.Id, -1)">↑</button>
+                                            <button class="btn btn-sm btn-outline-secondary py-0 px-1 ms-1" title="Niżej"
+                                                    @onclick="() => MoveInTeam(team1.Players, p.Id, 1)">↓</button>
+                                            <button class="btn btn-sm btn-outline-warning py-0 px-1 ms-1" title="Przenieś do rezerwy"
+                                                    @onclick="() => MoveToReserve(p.Id)">⬇</button>
+                                            <button class="btn btn-sm btn-outline-danger py-0 px-1 ms-1" title="Przenieś do Drużyny 2"
+                                                    @onclick="() => MovePlayerBetweenTeams(p.Id, 1, 2)">→</button>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                            <div class="card-footer text-center fw-bold text-success small">Suma pola: @FieldTotal(team1) pkt</div>
+                        </div>
+                    </div>
+
+                    <!-- DRUŻYNA 2 -->
+                    <div class="col-md-6">
+                        <div class="card border-danger shadow-sm h-100">
+                            <div class="card-header bg-danger text-white fw-bold d-flex justify-content-between align-items-center">
+                                <span>🔴 Drużyna 2</span>
+                                <span class="badge bg-light text-dark">@team2.Count graczy</span>
+                            </div>
+                            <div class="card-body p-0 @(dragOverZone == 2 ? "bg-danger bg-opacity-10" : "")"
+                                 @ondragover:preventDefault="true"
+                                 @ondragenter="() => dragOverZone = 2"
+                                 @ondrop="() => DropToZone(2)">
+                                <ul class="list-group list-group-flush">
+                                    @for (int i = 0; i < team2.Players.Count; i++)
+                                    {
+                                        var p = team2.Players[i];
+                                        var idx = i;
+                                        var isGkP = matchGkIds.Contains(p.Id);
+                                        var isCap = captain2Id == p.Id;
+                                        <li class="list-group-item d-flex justify-content-between align-items-center ps-2 @(isGkP ? "list-group-item-warning" : isCap ? "list-group-item-info" : "")"
+                                            draggable="true"
+                                            @ondragstart="() => StartDrag(p.Id, 2)"
+                                            @ondragend="() => { draggedPlayerId = null; dragOverZone = null; }"
+                                            style="cursor:grab">
+                                            <span class="me-auto">
+                                                <span class="text-muted me-1" style="font-size:.8rem">@(idx+1).</span>
+                                                @if (!string.IsNullOrEmpty(p.Nationality))
+                                                {<span style="font-size:1.05rem;margin-right:3px">@CountryHelper.ToFlagEmoji(p.Nationality)</span>}
+                                                @p.Name
+                                                @if (isCap) {<span class="badge text-dark ms-1" style="background:#ffc107;border:2px solid #856404;font-weight:900">C</span>}
+                                                @if (isGkP) {<span class="badge bg-warning text-dark ms-1">🧤 GK</span>}
+                                                @if (pinnedTeam.TryGetValue(p.Id, out var pt2) && pt2 == 2)
+                                                {<span class="ms-1 text-danger" style="font-size:.8rem" title="Przypięty do T2">📌</span>}
+                                            </span>
+                                            <button class="btn btn-sm @(isCap ? "btn-warning" : "btn-outline-secondary") py-0 px-1 ms-1" style="font-weight:900;font-size:.8rem" title="@(isCap ? "Usuń opaski kapitana" : "Ustaw kapitanem")"
+                                                    @onclick="() => ToggleCaptain(2, p.Id)">C</button>
+                                            <button class="btn btn-sm btn-outline-secondary py-0 px-1 ms-1" title="Wyżej"
+                                                    @onclick="() => MoveInTeam(team2.Players, p.Id, -1)">↑</button>
+                                            <button class="btn btn-sm btn-outline-secondary py-0 px-1 ms-1" title="Niżej"
+                                                    @onclick="() => MoveInTeam(team2.Players, p.Id, 1)">↓</button>
+                                            <button class="btn btn-sm btn-outline-success py-0 px-1 ms-1" title="Przenieś do Drużyny 1"
+                                                    @onclick="() => MovePlayerBetweenTeams(p.Id, 2, 1)">←</button>
+                                            <button class="btn btn-sm btn-outline-warning py-0 px-1 ms-1" title="Przenieś do rezerwy"
+                                                    @onclick="() => MoveToReserve(p.Id)">⬇</button>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                            <div class="card-footer text-center fw-bold text-danger small">Suma pola: @FieldTotal(team2) pkt</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- REZERWA (drop zone) -->
+                <div class="card border-warning shadow-sm mb-3 @(dragOverZone == 0 ? "border-3" : "")"
+                     @ondragover:preventDefault="true"
+                     @ondragenter="() => dragOverZone = 0"
+                     @ondrop="() => DropToZone(0)">
+                    <div class="card-header bg-warning text-dark fw-bold py-1">
+                        🪑 Rezerwa (@reservePlayers.Count) — <small class="fw-normal">przeciągnij gracza tutaj lub użyj ⬇</small>
+                    </div>
+                    @if (reservePlayers.Count > 0)
+                    {
+                        <div class="card-body p-0">
+                            <ol class="list-group list-group-flush list-group-numbered">
+                                @foreach (var p in reservePlayers.OrderBy(x => x.Name))
+                                {
+                                    <li class="list-group-item d-flex justify-content-between align-items-center ps-2"
+                                        draggable="true"
+                                        @ondragstart="() => StartDrag(p.Id, 0)"
+                                        @ondragend="() => { draggedPlayerId = null; dragOverZone = null; }"
+                                        style="cursor:grab">
+                                        <span class="me-auto">
+                                            @if (!string.IsNullOrEmpty(p.Nationality))
+                                            {<span style="font-size:1.05rem;margin-right:3px">@CountryHelper.ToFlagEmoji(p.Nationality)</span>}
+                                            @p.Name
+                                        </span>
+                                        <button class="btn btn-sm btn-outline-success py-0 px-1 ms-1" title="Do Drużyny 1"
+                                                @onclick="() => DropFromReserveTo(p.Id, 1)">→🟢</button>
+                                        <button class="btn btn-sm btn-outline-danger py-0 px-1 ms-1" title="Do Drużyny 2"
+                                                @onclick="() => DropFromReserveTo(p.Id, 2)">→🔴</button>
+                                        <button class="btn btn-sm btn-outline-secondary py-0 px-1 ms-1" title="Usuń z meczu"
+                                                @onclick="() => RemoveFromMatch(p.Id)">✖</button>
+                                    </li>
+                                }
+                            </ol>
+                        </div>
+                    }
+                </div>
+
+                <!-- KOPIUJ I ZAPISZ -->
+                <div class="d-flex gap-2 mb-3">
+                    <button class="btn btn-outline-success flex-grow-1" @onclick="CopyToClipboard">
+                        📋 Kopiuj składy (WhatsApp)
+                    </button>
+                    <button class="btn btn-outline-primary" @onclick="SaveMatchToHistory" title="Zapisz skład do historii">
+                        💾 Zapisz do historii
+                    </button>
+                </div>
+                @if (copySuccess.HasValue)
+                {
+                    <div class="alert @(copySuccess.Value ? "alert-success" : "alert-warning") py-2 small mb-3">
+                        @(copySuccess.Value ? "✅ Skopiowano! Wklej na WhatsApp." : "❌ Nie udało się skopiować.")
+                    </div>
+                }
+                @if (saveSuccess.HasValue)
+                {
+                    <div class="alert @(saveSuccess.Value ? "alert-info" : "alert-danger") py-2 small mb-3">
+                        @(saveSuccess.Value ? "💾 Zapisano do historii! Wyniki możesz dodać na stronie Statystyki." : "❌ Błąd zapisu do historii.")
+                    </div>
+                }
+
+                <!-- STATYSTYKI -->
+                <div class="card shadow-sm">
+                    <div class="card-header fw-bold">📊 Porównanie statystyk</div>
+                    <div class="card-body p-0">
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Statystyka</th>
+                                    <th class="text-center text-success">🟢 Drużyna 1</th>
+                                    <th class="text-center text-danger">🔴 Drużyna 2</th>
+                                    <th class="text-center">Różnica</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @CompareRow("⚡ Szybkość",   FieldStat(team1, p => p.Speed),    FieldStat(team2, p => p.Speed))
+                                @CompareRow("🏃 Wybieganie", FieldStat(team1, p => p.Stamina),  FieldStat(team2, p => p.Stamina))
+                                @CompareRow("🛡️ Obrona",     FieldStat(team1, p => p.Defense),  FieldStat(team2, p => p.Defense))
+                                @CompareRow("⚔️ Atak",       FieldStat(team1, p => p.Attack),   FieldStat(team2, p => p.Attack))
+                                @CompareRow("💪 Siła",       FieldStat(team1, p => p.Strength), FieldStat(team2, p => p.Strength))
+                                <tr class="table-dark fw-bold">
+                                    <td>🏆 Łącznie</td>
+                                    <td class="text-center text-success">@FieldTotal(team1)</td>
+                                    <td class="text-center text-danger">@FieldTotal(team2)</td>
+                                    <td class="text-center">@Math.Abs(FieldTotal(team1) - FieldTotal(team2))</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private List<Player> allPlayers = [];
+    private HashSet<int> selectedIds = [];
+    private HashSet<int> reserveIds  = [];
+    private HashSet<int> matchGkIds  = []; // gracze oznaczeni jako GK w tym meczu
+    private Dictionary<int, int> pinnedTeam = new(); // playerId -> 1 or 2
+    private int? captain1Id;
+    private int? captain2Id;
+    private Team? team1;
+    private Team? team2;
+    private double balanceScore;
+    private string errorMessage = string.Empty;
+    private int regenerateSeed = 0;
+    private bool? copySuccess;
+    private bool? saveSuccess;
+    private int? draggedPlayerId;
+    private int  draggedFromZone; // 1=T1, 2=T2, 0=reserve
+    private int? dragOverZone;    // strefa podswieltona podczas przeciągania
+    private bool _afterRender;
+
+    private string matchDay     = "Środa";
+    private int    matchHourStart = 20;
+    private int    matchMinStart  = 0;
+    private int    matchHourEnd   = 21;
+    private int    matchMinEnd    = 55;
+    private string matchVenue   = "Manhattan Park Stadium";
+
+    private string MatchTime => $"{matchHourStart:D2}:{matchMinStart:D2} - {matchHourEnd:D2}:{matchMinEnd:D2}";
+
+    private int ActiveCount => selectedIds.Except(reserveIds).Count();
+    private List<Player> reservePlayers => allPlayers.Where(p => reserveIds.Contains(p.Id)).ToList();
+
+    private static readonly string[] MatchTimes = []; // usunięte - czas wpisywany polami
+
+    // --- localStorage: zapis / odczyt składu ---
+
+    private const string StorageKey = "fcobs_last_match";
+
+    private async Task SaveToStorage()
+    {
+        if (team1 == null || team2 == null) return;
+        var state = new MatchStateDto
+        {
+            SelectedIds    = [.. selectedIds],
+            ReserveIds     = [.. reserveIds],
+            GkIds          = [.. matchGkIds],
+            PinnedTeam     = pinnedTeam.Select(kv => new PinnedEntry { Key = kv.Key, Value = kv.Value }).ToList(),
+            Team1Ids       = team1.Players.Select(p => p.Id).ToList(),
+            Team2Ids       = team2.Players.Select(p => p.Id).ToList(),
+            Captain1Id     = captain1Id,
+            Captain2Id     = captain2Id,
+            MatchDay       = matchDay,
+            MatchHourStart = matchHourStart,
+            MatchMinStart  = matchMinStart,
+            MatchHourEnd   = matchHourEnd,
+            MatchMinEnd    = matchMinEnd,
+            MatchVenue     = matchVenue
+        };
+        var json = System.Text.Json.JsonSerializer.Serialize(state);
+        await JS.InvokeVoidAsync("storage.save", StorageKey, json);
+    }
+
+    private async Task RestoreFromStorage()
+    {
+        try
+        {
+            var json = await JS.InvokeAsync<string?>("storage.load", StorageKey);
+            if (string.IsNullOrEmpty(json)) return;
+
+            var opts = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var s = System.Text.Json.JsonSerializer.Deserialize<MatchStateDto>(json, opts);
+            if (s == null) return;
+
+            selectedIds = [.. s.SelectedIds];
+            reserveIds  = [.. s.ReserveIds];
+            matchGkIds  = [.. s.GkIds];
+            pinnedTeam  = s.PinnedTeam.ToDictionary(e => e.Key, e => e.Value);
+
+            if (s.Team1Ids.Count > 0 || s.Team2Ids.Count > 0)
+            {
+                team1 = new Team { Name = "Drużyna 1", Players = s.Team1Ids.Select(id => allPlayers.FirstOrDefault(p => p.Id == id)).OfType<Player>().ToList() };
+                team2 = new Team { Name = "Drużyna 2", Players = s.Team2Ids.Select(id => allPlayers.FirstOrDefault(p => p.Id == id)).OfType<Player>().ToList() };
+                balanceScore = Generator.GetBalanceScore(team1, team2, matchGkIds);
+            }
+
+            captain1Id = s.Captain1Id;
+            captain2Id = s.Captain2Id;
+
+            if (!string.IsNullOrEmpty(s.MatchDay))   matchDay       = s.MatchDay;
+            if (s.MatchHourStart > 0)                matchHourStart = s.MatchHourStart;
+            if (s.MatchHourEnd   > 0)                matchHourEnd   = s.MatchHourEnd;
+            matchMinStart = s.MatchMinStart;
+            matchMinEnd   = s.MatchMinEnd;
+            if (!string.IsNullOrEmpty(s.MatchVenue)) matchVenue     = s.MatchVenue;
+
+            StateHasChanged();
+        }
+        catch { /* brak lub uszkodzony stan — ignoruj */ }
+    }
+
+    private async Task ClearStorage() => await JS.InvokeVoidAsync("storage.remove", StorageKey);
+
+    protected override async Task OnInitializedAsync()
+    {
+        allPlayers = await Db.Players.ToListAsync();
+        // Domyślnie oznacz jako GK tych, którzy mają ustawioną flagę IsGoalkeeper
+        matchGkIds = allPlayers.Where(p => p.IsGoalkeeper).Select(p => p.Id).ToHashSet();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _afterRender) return;
+        _afterRender = true;
+        await RestoreFromStorage();
+    }
+
+    // --- Wybór zawodników ---
+
+    private void TogglePlayer(int id)
+    {
+        if (!selectedIds.Add(id))
+        {
+            selectedIds.Remove(id);
+            reserveIds.Remove(id);
+            pinnedTeam.Remove(id);
+        }
+        ResetTeams();
+    }
+
+    private void SelectAll()
+    {
+        selectedIds = allPlayers.Select(p => p.Id).ToHashSet();
+        ResetTeams();
+    }
+
+    private void ClearAll()
+    {
+        selectedIds.Clear();
+        reserveIds.Clear();
+        pinnedTeam.Clear();
+        ResetTeams();
+    }
+
+    private void ResetTeams()
+    {
+        team1 = null;
+        team2 = null;
+        captain1Id = null;
+        captain2Id = null;
+        copySuccess = null;
+    }
+
+    private void ClearTeams()
+    {
+        team1 = null;
+        team2 = null;
+        captain1Id = null;
+        captain2Id = null;
+        copySuccess = null;
+        saveSuccess = null;
+        _ = ClearStorage();
+    }
+
+    // --- Przypinanie ---
+
+    private void TogglePin(int playerId, int team)
+    {
+        if (pinnedTeam.TryGetValue(playerId, out var cur) && cur == team)
+            pinnedTeam.Remove(playerId);
+        else
+            pinnedTeam[playerId] = team;
+        ResetTeams();
+    }
+
+    private void ClearPins()
+    {
+        pinnedTeam.Clear();
+        ResetTeams();
+    }
+
+    // --- GK toggle ---
+
+    private void ToggleGk(int playerId)
+    {
+        if (!matchGkIds.Remove(playerId))
+            matchGkIds.Add(playerId);
+        if (team1 != null && team2 != null)
+            balanceScore = Generator.GetBalanceScore(team1, team2, matchGkIds);
+    }
+
+    // --- Kapitan ---
+
+    private void ToggleCaptain(int teamNum, int playerId)
+    {
+        if (teamNum == 1)
+        {
+            captain1Id = (captain1Id == playerId) ? null : playerId;
+            ApplyCaptain(team1?.Players, captain1Id);
+        }
+        else
+        {
+            captain2Id = (captain2Id == playerId) ? null : playerId;
+            ApplyCaptain(team2?.Players, captain2Id);
+        }
+        _ = SaveToStorage();
+    }
+
+    // Przesuń kapitana zawsze na pozycję 0 (powyżej GK)
+    private void ApplyCaptain(List<Player>? players, int? captainId)
+    {
+        if (players == null || captainId == null) return;
+        var cap = players.FirstOrDefault(p => p.Id == captainId);
+        if (cap == null) return;
+        players.Remove(cap);
+        players.Insert(0, cap); // kapitan zawsze na 1. miejscu, przed GK
+    }
+
+    // --- Drag & drop ---
+
+    private void StartDrag(int playerId, int fromZone)
+    {
+        draggedPlayerId = playerId;
+        draggedFromZone = fromZone;
+    }
+
+    private void DropToZone(int targetZone)
+    {
+        dragOverZone = null;
+        if (!draggedPlayerId.HasValue || draggedFromZone == targetZone) { draggedPlayerId = null; return; }
+        if (team1 == null || team2 == null) { draggedPlayerId = null; return; }
+
+        var pid = draggedPlayerId.Value;
+        Player? player = null;
+
+        if (draggedFromZone == 1)      { player = team1.Players.FirstOrDefault(p => p.Id == pid); team1.Players.RemoveAll(p => p.Id == pid); }
+        else if (draggedFromZone == 2) { player = team2.Players.FirstOrDefault(p => p.Id == pid); team2.Players.RemoveAll(p => p.Id == pid); }
+        else                           { player = allPlayers.FirstOrDefault(p => p.Id == pid); reserveIds.Remove(pid); }
+
+        if (player == null) { draggedPlayerId = null; return; }
+
+        if (targetZone == 1)      { team1.Players.Add(player); reserveIds.Remove(pid); }
+        else if (targetZone == 2) { team2.Players.Add(player); reserveIds.Remove(pid); }
+        else                      { reserveIds.Add(pid); } // rezerwa
+
+        balanceScore = Generator.GetBalanceScore(team1, team2, matchGkIds);
+        _ = SaveToStorage();
+        draggedPlayerId = null;
+    }
+
+    // --- Rezerwa i przesuwanie ---
+
+    private void MoveToReserve(int id)
+    {
+        reserveIds.Add(id);
+        team1?.Players.RemoveAll(p => p.Id == id);
+        team2?.Players.RemoveAll(p => p.Id == id);
+        if (team1 != null && team2 != null)
+        {
+            balanceScore = Generator.GetBalanceScore(team1, team2, matchGkIds);
+            _ = SaveToStorage();
+        }
+    }
+
+    private void MovePlayerBetweenTeams(int id, int fromTeam, int toTeam)
+    {
+        if (team1 == null || team2 == null) return;
+        var src  = fromTeam == 1 ? team1.Players : team2.Players;
+        var dest = toTeam   == 1 ? team1.Players : team2.Players;
+        var player = src.FirstOrDefault(p => p.Id == id);
+        if (player == null) return;
+        src.Remove(player);
+        dest.Add(player);
+        balanceScore = Generator.GetBalanceScore(team1, team2, matchGkIds);
+        _ = SaveToStorage();
+    }
+
+    private void DropFromReserveTo(int id, int targetTeam)
+    {
+        reserveIds.Remove(id);
+        if (team1 == null || team2 == null) return;
+        var player = allPlayers.FirstOrDefault(p => p.Id == id);
+        if (player == null) return;
+        var dest = targetTeam == 1 ? team1.Players : team2.Players;
+        dest.Add(player);
+        balanceScore = Generator.GetBalanceScore(team1, team2, matchGkIds);
+        _ = SaveToStorage();
+    }
+
+    private void RemoveFromMatch(int id)
+    {
+        selectedIds.Remove(id);
+        reserveIds.Remove(id);
+        pinnedTeam.Remove(id);
+        team1?.Players.RemoveAll(p => p.Id == id);
+        team2?.Players.RemoveAll(p => p.Id == id);
+        if (team1 != null && team2 != null)
+        {
+            balanceScore = Generator.GetBalanceScore(team1, team2, matchGkIds);
+            _ = SaveToStorage();
+        }
+    }
+
+    // --- Generowanie ---
+
+    private void GenerateTeams() => TryGenerate();
+
+    private void RegenerateTeams() { regenerateSeed++; TryGenerate(regenerateSeed); }
+
+    private void TryGenerate(int? seed = null)
+    {
+        errorMessage = string.Empty;
+        copySuccess = null;
+        saveSuccess = null;
+        try
+        {
+            var active = allPlayers
+                .Where(p => selectedIds.Contains(p.Id) && !reserveIds.Contains(p.Id))
+                .ToList();
+            if (active.Count < 2) { errorMessage = "Zaznacz co najmniej 2 aktywnych zawodników."; return; }
+
+            // Rozdziel GK (bramkarzy) od zawodników z pola
+            var gkActive    = active.Where(p => matchGkIds.Contains(p.Id)).ToList();
+            var fieldActive = active.Where(p => !matchGkIds.Contains(p.Id)).ToList();
+
+            if (gkActive.Count != 0 && gkActive.Count != 2)
+            {
+                errorMessage = $"Bramkarzy (🧤 GK) w składzie musi być 0 lub 2, a jest {gkActive.Count}. Zaznacz lub odznacz właściwych zawodników.";
+                return;
+            }
+
+            // Przypisz GK po jednym do każdej drużyny (respektując przypięcia)
+            Player? gk1 = null, gk2 = null;
+            if (gkActive.Count == 2)
+            {
+                var gkP1   = gkActive.FirstOrDefault(p => pinnedTeam.GetValueOrDefault(p.Id) == 1);
+                var gkP2   = gkActive.FirstOrDefault(p => pinnedTeam.GetValueOrDefault(p.Id) == 2);
+                var gkFree = gkActive.Where(p => !pinnedTeam.ContainsKey(p.Id)).ToList();
+                gk1 = gkP1; gk2 = gkP2;
+                foreach (var gk in gkFree) { if (gk1 == null) gk1 = gk; else if (gk2 == null) gk2 = gk; }
+                // fallback gdyby oba GK przypięte do tej samej strony
+                if (gk1 == null || gk2 == null) { gk1 = gkActive[0]; gk2 = gkActive[1]; }
+            }
+
+            // Generuj zawodników z pola
+            var pinned1 = fieldActive.Where(p => pinnedTeam.GetValueOrDefault(p.Id) == 1).ToList();
+            var pinned2 = fieldActive.Where(p => pinnedTeam.GetValueOrDefault(p.Id) == 2).ToList();
+            var free    = fieldActive.Where(p => !pinnedTeam.ContainsKey(p.Id)).ToList();
+
+            if (fieldActive.Count == 0)
+            {
+                team1 = new Team { Name = "Drużyna 1", Players = [] };
+                team2 = new Team { Name = "Drużyna 2", Players = [] };
+            }
+            else
+            {
+                (team1, team2) = (pinned1.Count > 0 || pinned2.Count > 0)
+                    ? Generator.GenerateTeamsWithPins(free, pinned1, pinned2, seed)
+                    : Generator.GenerateTeams(fieldActive, seed);
+            }
+
+            // Zastosuj kapitanów najpierw (pozycja 0), potem GK (za kapitanem)
+            ApplyCaptain(team1.Players, captain1Id);
+            ApplyCaptain(team2.Players, captain2Id);
+
+            // Wstaw GK: jeśli jest kapitan na pozycji 0 → GK idzie na pozycję 1, inaczej na 0
+            if (gk1 != null)
+            {
+                int gkPos = captain1Id.HasValue && team1.Players.Count > 0 && team1.Players[0].Id == captain1Id.Value ? 1 : 0;
+                team1.Players.Insert(gkPos, gk1);
+            }
+            if (gk2 != null)
+            {
+                int gkPos = captain2Id.HasValue && team2.Players.Count > 0 && team2.Players[0].Id == captain2Id.Value ? 1 : 0;
+                team2.Players.Insert(gkPos, gk2);
+            }
+
+            balanceScore = Generator.GetBalanceScore(team1, team2, matchGkIds);
+            _ = SaveToStorage();
+        }
+        catch (Exception ex) { errorMessage = ex.Message; }
+    }
+
+    // --- Zmiana kolejności w drużynie ---
+
+    private void MoveInTeam(List<Player> teamPlayers, int playerId, int direction)
+    {
+        int idx = teamPlayers.FindIndex(p => p.Id == playerId);
+        int newIdx = idx + direction;
+        if (idx < 0 || newIdx < 0 || newIdx >= teamPlayers.Count) return;
+        (teamPlayers[idx], teamPlayers[newIdx]) = (teamPlayers[newIdx], teamPlayers[idx]);
+        _ = SaveToStorage();
+    }
+
+    // --- Pomocnicze (bez GK) ---
+
+    private int FieldStat(Team team, Func<Player, int> selector) =>
+        team.Players.Where(p => !matchGkIds.Contains(p.Id)).Sum(selector);
+
+    private int FieldTotal(Team team) =>
+        team.Players.Where(p => !matchGkIds.Contains(p.Id)).Sum(p => p.TotalRating);
+
+    // --- Zapisz do historii ---
+
+    private async Task SaveMatchToHistory()
+    {
+        if (team1 == null || team2 == null) return;
+        saveSuccess = null;
+        try
+        {
+            var record = new FCOldBoysTeamSelector.Models.MatchRecord
+            {
+                GeneratedAt = DateTime.Now,
+                MatchDay    = matchDay,
+                MatchTime   = MatchTime,
+                MatchVenue  = matchVenue
+            };
+            Db.MatchRecords.Add(record);
+            await Db.SaveChangesAsync();
+
+            var entries = new List<FCOldBoysTeamSelector.Models.MatchPlayerEntry>();
+            foreach (var p in team1.Players)
+                entries.Add(new() { MatchRecordId = record.Id, PlayerId = p.Id, PlayerName = p.Name, PlayerNationality = p.Nationality ?? "", TeamNumber = 1 });
+            foreach (var p in team2.Players)
+                entries.Add(new() { MatchRecordId = record.Id, PlayerId = p.Id, PlayerName = p.Name, PlayerNationality = p.Nationality ?? "", TeamNumber = 2 });
+            foreach (var p in reservePlayers)
+                entries.Add(new() { MatchRecordId = record.Id, PlayerId = p.Id, PlayerName = p.Name, PlayerNationality = p.Nationality ?? "", TeamNumber = 0 });
+
+            Db.MatchPlayerEntries.AddRange(entries);
+            await Db.SaveChangesAsync();
+            saveSuccess = true;
+        }
+        catch { saveSuccess = false; }
+    }
+
+    // --- Kopiuj do schowka ---
+
+    private async Task CopyToClipboard()
+    {
+        if (team1 == null || team2 == null) return;
+        var sb = new System.Text.StringBuilder();
+
+        if (!string.IsNullOrWhiteSpace(matchDay) || matchHourStart > 0)
+            sb.AppendLine($"*{matchDay} godz. {MatchTime}*");
+        if (!string.IsNullOrWhiteSpace(matchVenue))
+            sb.AppendLine(matchVenue);
+        sb.AppendLine();
+
+        sb.AppendLine("🟢 ⚽");
+        sb.AppendLine();
+        int n = 1;
+        foreach (var p in team1.Players)
+        {
+            var flag = CountryHelper.ToFlagEmoji(p.Nationality);
+            var fp   = string.IsNullOrEmpty(flag) ? "" : flag + " ";
+            var cap  = captain1Id == p.Id ? "© " : "";
+            var gk   = matchGkIds.Contains(p.Id) ? " [GK]" : "";
+            sb.AppendLine($"{n++}.    {cap}{fp}{p.Name}{gk}");
+        }
+        sb.AppendLine();
+        sb.AppendLine("🔴 ⚽");
+        sb.AppendLine();
+        n = 1;
+        foreach (var p in team2.Players)
+        {
+            var flag = CountryHelper.ToFlagEmoji(p.Nationality);
+            var fp   = string.IsNullOrEmpty(flag) ? "" : flag + " ";
+            var cap  = captain2Id == p.Id ? "© " : "";
+            var gk   = matchGkIds.Contains(p.Id) ? " [GK]" : "";
+            sb.AppendLine($"{n++}.    {cap}{fp}{p.Name}{gk}");
+        }
+
+        if (reservePlayers.Count > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine("Rezerwa:");
+            n = 1;
+            foreach (var p in reservePlayers.OrderBy(x => x.Name))
+            {
+                var flag = CountryHelper.ToFlagEmoji(p.Nationality);
+                var fp = string.IsNullOrEmpty(flag) ? "" : flag + " ";
+                sb.AppendLine($"{n++}.  {fp}{p.Name}");
+            }
+        }
+
+        copySuccess = await JS.InvokeAsync<bool>("clipboardHelper.copyText", sb.ToString());
+    }
+
+    // --- Renderery ---
+
+    private RenderFragment CompareRow(string label, int v1, int v2) => builder =>
+    {
+        int diff = Math.Abs(v1 - v2);
+        string diffClass = diff == 0 ? "text-success" : diff <= 2 ? "text-warning" : "text-danger";
+        builder.OpenElement(0, "tr");
+        builder.OpenElement(1, "td"); builder.AddContent(2, label); builder.CloseElement();
+        builder.OpenElement(3, "td");
+        builder.AddAttribute(4, "class", "text-center text-success fw-semibold");
+        builder.AddContent(5, v1); builder.CloseElement();
+        builder.OpenElement(6, "td");
+        builder.AddAttribute(7, "class", "text-center text-danger fw-semibold");
+        builder.AddContent(8, v2); builder.CloseElement();
+        builder.OpenElement(9, "td");
+        builder.AddAttribute(10, "class", $"text-center fw-semibold {diffClass}");
+        builder.AddContent(11, diff); builder.CloseElement();
+        builder.CloseElement();
+    };
+
+    private RenderFragment StatBar(string icon, int value) => builder =>
+    {
+        builder.OpenElement(0, "span");
+        builder.AddAttribute(1, "class", "small text-muted me-1");
+        builder.AddContent(2, $"{icon}{value}");
+        builder.CloseElement();
+    };
+
+    // --- DTO dla localStorage ---
+
+    private class MatchStateDto
+    {
+        public List<int> SelectedIds    { get; set; } = [];
+        public List<int> ReserveIds     { get; set; } = [];
+        public List<int> GkIds          { get; set; } = [];
+        public List<PinnedEntry> PinnedTeam { get; set; } = [];
+        public List<int> Team1Ids       { get; set; } = [];
+        public List<int> Team2Ids       { get; set; } = [];
+        public int? Captain1Id          { get; set; }
+        public int? Captain2Id          { get; set; }
+        public string MatchDay          { get; set; } = "";
+        public int MatchHourStart       { get; set; }
+        public int MatchMinStart        { get; set; }
+        public int MatchHourEnd         { get; set; }
+        public int MatchMinEnd          { get; set; }
+        public string MatchVenue        { get; set; } = "";
+    }
+
+    private class PinnedEntry
+    {
+        public int Key   { get; set; }
+        public int Value { get; set; }
+    }
+}
