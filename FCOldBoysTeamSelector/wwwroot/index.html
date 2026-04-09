@@ -25,7 +25,8 @@
     var params = new URLSearchParams(window.location.search);
     var path = params.get("p");
     if (path) {
-      history.replaceState(null, null, path + (params.get("q") ? "?" + params.get("q") : "") + window.location.hash);
+      var base = document.querySelector('base').getAttribute('href').replace(/\/$/, '');
+      history.replaceState(null, null, base + path + (params.get("q") ? "?" + params.get("q") : "") + window.location.hash);
     }
   })();
 </script>

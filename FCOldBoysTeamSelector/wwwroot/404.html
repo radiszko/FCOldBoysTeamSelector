@@ -10,7 +10,7 @@
     l.replace(
       base + "/?p=" +
       l.pathname.replace(base, "") +
-      "&q=" + l.search.slice(1) +
+      (l.search ? "&q=" + l.search.slice(1) : "") +
       l.hash
     );
   </script>
