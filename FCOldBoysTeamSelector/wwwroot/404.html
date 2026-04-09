@@ -1,14 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8" />
-    <title>FC Old Boys Team Selector</title>
-    <script>
-        // Simple SPA redirect for GitHub Pages
-        var segment = "/FCOldBoysTeamSelector";
-        var path = window.location.pathname.replace(segment, "");
-        window.location.replace(segment + "/#"+ path + window.location.search + window.location.hash);
-    </script>
+  <meta charset="utf-8" />
+  <script>
+    var l = window.location;
+    var base = "/FCOldBoysTeamSelector";
+
+    // Redirect do index.html z zachowaniem ścieżki
+    l.replace(
+      base + "/?p=" +
+      l.pathname.replace(base, "") +
+      "&q=" + l.search.slice(1) +
+      l.hash
+    );
+  </script>
 </head>
 <body></body>
 </html>
