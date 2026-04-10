@@ -433,8 +433,12 @@ else
             MatchMinEnd    = matchMinEnd,
             MatchVenue     = matchVenue
         };
-        var json = System.Text.Json.JsonSerializer.Serialize(state);
-        await JS.InvokeVoidAsync("storage.save", StorageKey, json);
+        try
+        {
+            var json = System.Text.Json.JsonSerializer.Serialize(state);
+            await JS.InvokeVoidAsync("storage.save", StorageKey, json);
+        }
+        catch { /* ignoruj błędy zapisu localStorage */ }
     }
 
     private async Task RestoreFromStorage()
