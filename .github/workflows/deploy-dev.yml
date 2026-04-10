@@ -1,14 +1,14 @@
-name: 🚀 Deploy PROD
+name: 🧪 Deploy DEV
 
 on:
   push:
-    branches: [ main ]
+    branches: [ dev ]
   workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: production
+    environment: dev
     permissions:
       contents: write
 
@@ -24,12 +24,18 @@ jobs:
       - name: Publish
         run: dotnet publish FCOldBoysTeamSelector/FCOldBoysTeamSelector.csproj -c Release --output publish
 
+      - name: Set base href for DEV environment
+        run: |
+          sed -i 's|<base href="/FCOldBoysTeamSelector/" />|<base href="/FCOldBoysTeamSelector/dev/" />|g' publish/wwwroot/index.html
+          sed -i 's|var base = "/FCOldBoysTeamSelector";|var base = "/FCOldBoysTeamSelector/dev";|g' publish/wwwroot/404.html
+
       - name: Add .nojekyll
         run: touch publish/wwwroot/.nojekyll
 
-      - name: Deploy PROD to GitHub Pages
+      - name: Deploy DEV to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: publish/wwwroot
+          destination_dir: dev
           keep_files: true
