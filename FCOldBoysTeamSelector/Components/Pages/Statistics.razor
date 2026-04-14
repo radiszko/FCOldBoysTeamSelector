@@ -28,7 +28,7 @@
     @if (matches.Count == 0)
     {
         <div class="alert alert-info">
-            Brak historii meczów. Wygeneruj skład na stronie <a href="/match">Generuj Skład</a> i kliknij "Zapisz do historii".
+            Brak historii meczów. Wygeneruj skład na stronie <a href="match">Generuj Skład</a> i kliknij "Zapisz do historii".
         </div>
     }
     else
@@ -199,8 +199,7 @@ else
 
     private async Task LoadData()
     {
-        // Pobierz meczy z localStorage (dopóki nie mamy Supabase do meczów)
-        matches = await Storage.GetMatchRecordsAsync();
+        matches = await SupabaseService.GetMatchRecordsAsync();
         BuildPlayerStats();
     }
 
@@ -266,17 +265,17 @@ else
     {
         var match = matches.FirstOrDefault(m => m.Id == matchId);
         if (match == null) return;
+        await SupabaseService.UpdateMatchScoreAsync(matchId, editScore1, editScore2);
         match.Score1 = editScore1;
         match.Score2 = editScore2;
-        await Storage.SaveMatchRecordsAsync(matches);
         CancelEdit();
         BuildPlayerStats();
     }
 
     private async Task DeleteMatch(int matchId)
     {
+        await SupabaseService.DeleteMatchRecordAsync(matchId);
         matches.RemoveAll(m => m.Id == matchId);
-        await Storage.SaveMatchRecordsAsync(matches);
         BuildPlayerStats();
     }
 

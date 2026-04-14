@@ -4,6 +4,7 @@
 @using FCOldBoysTeamSelector.Helpers
 @inject LocalStorageService Storage
 @inject TeamGeneratorService Generator
+@inject SupabaseService SupabaseService
 @inject IJSRuntime JS
 
 <PageTitle>Generuj Skład</PageTitle>
@@ -13,7 +14,7 @@
 @if (allPlayers.Count == 0)
 {
     <div class="alert alert-warning">
-        Brak zawodników w bazie. <a href="/admin/players">Dodaj zawodników</a> w panelu administracyjnym.
+        Brak zawodników w bazie. <a href="admin/players">Dodaj zawodników</a> w panelu administracyjnym.
     </div>
 }
 else
@@ -483,7 +484,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        allPlayers = await Storage.GetPlayersAsync();
+        allPlayers = await SupabaseService.GetPlayersAsync();
         matchGkIds = allPlayers.Where(p => p.IsGoalkeeper).Select(p => p.Id).ToHashSet();
     }
 
@@ -787,28 +788,22 @@ else
         saveSuccess = null;
         try
         {
-            var records = await Storage.GetMatchRecordsAsync();
-            var newId   = records.Count > 0 ? records.Max(r => r.Id) + 1 : 1;
-
             var record = new MatchRecord
             {
-                Id          = newId,
-                GeneratedAt = DateTime.Now,
+                GeneratedAt = DateTime.UtcNow,
                 MatchDay    = matchDay,
                 MatchTime   = MatchTime,
                 MatchVenue  = matchVenue
             };
 
             foreach (var p in team1.Players)
-                record.PlayerEntries.Add(new() { MatchRecordId = newId, PlayerId = p.Id, PlayerName = p.Name, PlayerNationality = p.Nationality ?? "", TeamNumber = 1 });
+                record.PlayerEntries.Add(new() { PlayerId = p.Id, PlayerName = p.Name, PlayerNationality = p.Nationality ?? "", TeamNumber = 1 });
             foreach (var p in team2.Players)
-                record.PlayerEntries.Add(new() { MatchRecordId = newId, PlayerId = p.Id, PlayerName = p.Name, PlayerNationality = p.Nationality ?? "", TeamNumber = 2 });
+                record.PlayerEntries.Add(new() { PlayerId = p.Id, PlayerName = p.Name, PlayerNationality = p.Nationality ?? "", TeamNumber = 2 });
             foreach (var p in reservePlayers)
-                record.PlayerEntries.Add(new() { MatchRecordId = newId, PlayerId = p.Id, PlayerName = p.Name, PlayerNationality = p.Nationality ?? "", TeamNumber = 0 });
+                record.PlayerEntries.Add(new() { PlayerId = p.Id, PlayerName = p.Name, PlayerNationality = p.Nationality ?? "", TeamNumber = 0 });
 
-            records.Add(record);
-            await Storage.SaveMatchRecordsAsync(records);
-            saveSuccess = true;
+            saveSuccess = await SupabaseService.SaveMatchRecordAsync(record);
         }
         catch { saveSuccess = false; }
     }
