@@ -81,19 +81,22 @@ public class TeamGeneratorService
         return grouped.Concat(individuals).ToList();
     }
 
-    // Wagi balansowania: szybkość 0.25, wybieganie 0.25, reszta (obrona/gbp/gzp/siła) po 0.50/4 = 0.125
-    private const double WSpeed   = 0.25;
-    private const double WStamina = 0.25;
-    private const double WOther   = 0.50 / 4.0;
+    // Wagi balansowania: SZY 20%, WYT 25%, SIŁ 15%, GZP 10%, GBP 10%, OBR 20%
+    private const double WSpeed       = 0.20;
+    private const double WStamina     = 0.25;
+    private const double WStrength    = 0.15;
+    private const double WGraZPilka   = 0.10;
+    private const double WGraBezPilki = 0.10;
+    private const double WDefense     = 0.20;
 
     private static double ComputeScore(List<Player> t1, List<Player> t2)
     {
-        return WSpeed   * Math.Abs(t1.Sum(p => p.Speed)       - t2.Sum(p => p.Speed))
-             + WStamina * Math.Abs(t1.Sum(p => p.Stamina)     - t2.Sum(p => p.Stamina))
-             + WOther   * Math.Abs(t1.Sum(p => p.Defense)     - t2.Sum(p => p.Defense))
-             + WOther   * Math.Abs(t1.Sum(p => p.GraBezPilki) - t2.Sum(p => p.GraBezPilki))
-             + WOther   * Math.Abs(t1.Sum(p => p.GraZPilka)   - t2.Sum(p => p.GraZPilka))
-             + WOther   * Math.Abs(t1.Sum(p => p.Strength)    - t2.Sum(p => p.Strength));
+        return WSpeed       * Math.Abs(t1.Sum(p => p.Speed)       - t2.Sum(p => p.Speed))
+             + WStamina     * Math.Abs(t1.Sum(p => p.Stamina)     - t2.Sum(p => p.Stamina))
+             + WStrength    * Math.Abs(t1.Sum(p => p.Strength)    - t2.Sum(p => p.Strength))
+             + WGraZPilka   * Math.Abs(t1.Sum(p => p.GraZPilka)   - t2.Sum(p => p.GraZPilka))
+             + WGraBezPilki * Math.Abs(t1.Sum(p => p.GraBezPilki) - t2.Sum(p => p.GraBezPilki))
+             + WDefense     * Math.Abs(t1.Sum(p => p.Defense)     - t2.Sum(p => p.Defense));
     }
 
     public double GetBalanceScore(Team t1, Team t2, HashSet<int>? gkIds = null)

@@ -1,3 +1,22 @@
+-- Tabela zawodników
+CREATE TABLE IF NOT EXISTS players (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  nationality TEXT DEFAULT '',
+  group_id INTEGER,
+  is_goalkeeper BOOLEAN NOT NULL DEFAULT false,
+  speed INTEGER NOT NULL DEFAULT 5,
+  stamina INTEGER NOT NULL DEFAULT 5,
+  defense INTEGER NOT NULL DEFAULT 5,
+  gra_bez_pilki INTEGER NOT NULL DEFAULT 5,
+  gra_z_pilka INTEGER NOT NULL DEFAULT 5,
+  strength INTEGER NOT NULL DEFAULT 5
+);
+
+-- RLS: pozwól anonowemu kluczowi na pełny dostęp do players
+ALTER TABLE players ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow anon full access on players" ON players FOR ALL USING (true) WITH CHECK (true);
+
 -- Seed data: Zawodnicy
 INSERT INTO players (name, nationality, group_id, is_goalkeeper, speed, stamina, defense, gra_bez_pilki, gra_z_pilka, strength) VALUES
 ('Roberto Nervosso', 'IT', 1, false, 7, 9, 9, 6, 7, 9),

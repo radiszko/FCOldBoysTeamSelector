@@ -11,23 +11,6 @@ CREATE TABLE IF NOT EXISTS matches (
   generated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
--- Tabela do przechowywania statystyk zawodników (jeśli jeszcze nie istnieje)
-CREATE TABLE IF NOT EXISTS player_stats (
-  id SERIAL PRIMARY KEY,
-  player_id INTEGER NOT NULL REFERENCES players(id) ON DELETE CASCADE,
-  matches INTEGER NOT NULL DEFAULT 0,
-  wins INTEGER NOT NULL DEFAULT 0,
-  draws INTEGER NOT NULL DEFAULT 0,
-  losses INTEGER NOT NULL DEFAULT 0,
-  appearances INTEGER NOT NULL DEFAULT 0,
-  total_score INTEGER NOT NULL DEFAULT 0,
-  total_conceded INTEGER NOT NULL DEFAULT 0,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
-);
-
-CREATE INDEX IF NOT EXISTS idx_player_stats_player_id ON player_stats(player_id);
-
 -- RLS: pozwól anonowemu kluczowi na pełny dostęp
 ALTER TABLE matches ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow anon full access on matches" ON matches FOR ALL USING (true) WITH CHECK (true);
