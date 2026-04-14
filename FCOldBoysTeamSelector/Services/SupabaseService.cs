@@ -53,7 +53,12 @@ public class SupabaseService
             {
                 var json = JsonSerializer.Serialize(player, _jsonOpts);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync($"{BaseUrl}/rest/v1/{TableName}", content);
+                var request = new HttpRequestMessage(HttpMethod.Post, $"{BaseUrl}/rest/v1/{TableName}")
+                {
+                    Content = content
+                };
+                request.Headers.Add("Prefer", "resolution=merge-duplicates");
+                var response = await _httpClient.SendAsync(request);
                 if (!response.IsSuccessStatusCode)
                 {
                     return false;
