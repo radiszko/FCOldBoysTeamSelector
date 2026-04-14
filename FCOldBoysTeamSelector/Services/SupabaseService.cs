@@ -17,7 +17,6 @@ public class SupabaseService
         _httpClient = httpClient;
         _httpClient.DefaultRequestHeaders.Add("apikey", ApiKey);
         _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {ApiKey}");
-        _httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
     }
 
     public async Task<List<Player>> GetPlayersAsync()
