@@ -72,6 +72,67 @@ public class SupabaseService
         }
     }
 
+    public async Task<bool> UpdatePlayerAsync(Player player)
+    {
+        try
+        {
+            var json = JsonSerializer.Serialize(player, _jsonOpts);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var request = new HttpRequestMessage(HttpMethod.Patch, $"{BaseUrl}/rest/v1/{TableName}?id=eq.{player.Id}")
+            {
+                Content = content
+            };
+            var response = await _httpClient.SendAsync(request);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> InsertPlayerAsync(Player player)
+    {
+        try
+        {
+            // Don't send id — let the DB generate it via SERIAL
+            var dto = new
+            {
+                name = player.Name,
+                nationality = player.Nationality,
+                group_id = player.GroupId,
+                is_goalkeeper = player.IsGoalkeeper,
+                speed = player.Speed,
+                stamina = player.Stamina,
+                defense = player.Defense,
+                gra_bez_pilki = player.GraBezPilki,
+                gra_z_pilka = player.GraZPilka,
+                strength = player.Strength
+            };
+            var json = JsonSerializer.Serialize(dto, _jsonOpts);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync($"{BaseUrl}/rest/v1/{TableName}", content);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> DeletePlayerAsync(int playerId)
+    {
+        try
+        {
+            var response = await _httpClient.DeleteAsync($"{BaseUrl}/rest/v1/{TableName}?id=eq.{playerId}");
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
     // ── Player stats ──
 
     public async Task<PlayerStats?> GetPlayerStatsAsync(int playerId)

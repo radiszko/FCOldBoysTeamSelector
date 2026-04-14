@@ -250,28 +250,19 @@ else
             editingPlayer.GroupId = null;
         }
 
+        bool success;
         if (editingPlayer.Id == 0)
         {
-            editingPlayer.Id = players.Count > 0 ? players.Max(p => p.Id) + 1 : 1;
-            players.Add(editingPlayer);
-            message = $"Dodano: {editingPlayer.Name}";
+            success = await SupabaseService.InsertPlayerAsync(editingPlayer);
+            message = success ? $"Dodano: {editingPlayer.Name}" : "Błąd zapisu do bazy danych!";
         }
         else
         {
-            var idx = players.FindIndex(p => p.Id == editingPlayer.Id);
-            if (idx >= 0)
-            {
-                players[idx] = editingPlayer;
-                message = $"Zapisano: {editingPlayer.Name}";
-            }
+            success = await SupabaseService.UpdatePlayerAsync(editingPlayer);
+            message = success ? $"Zapisano: {editingPlayer.Name}" : "Błąd zapisu do bazy danych!";
         }
 
-        var success = await SupabaseService.SavePlayersAsync(players);
-        if (!success)
-        {
-            message = "Błąd zapisu do bazy danych!";
-            return;
-        }
+        if (!success) return;
 
         await LoadPlayers();
         showForm = false;
@@ -279,8 +270,7 @@ else
 
     private async Task Delete(Player player)
     {
-        players.RemoveAll(p => p.Id == player.Id);
-        var success = await SupabaseService.SavePlayersAsync(players);
+        var success = await SupabaseService.DeletePlayerAsync(player.Id);
         if (!success)
         {
             message = "Błąd usunięcia z bazy danych!";
