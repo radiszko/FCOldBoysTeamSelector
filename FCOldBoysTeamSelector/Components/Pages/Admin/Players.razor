@@ -1,7 +1,7 @@
 @page "/admin/players"
 @using FCOldBoysTeamSelector.Models
 @using FCOldBoysTeamSelector.Helpers
-@inject LocalStorageService Storage
+@inject SupabaseService SupabaseService
 
 <PageTitle>Zarządzanie Zawodnikami</PageTitle>
 
@@ -193,7 +193,7 @@ else
 
     private async Task LoadPlayers()
     {
-        players = await Storage.GetPlayersAsync();
+        players = await SupabaseService.GetPlayersAsync();
     }
 
     private void AddNew()
@@ -257,7 +257,13 @@ else
             }
         }
 
-        await Storage.SavePlayersAsync(players);
+        var success = await SupabaseService.SavePlayersAsync(players);
+        if (!success)
+        {
+            message = "Błąd zapisu do bazy danych!";
+            return;
+        }
+
         await LoadPlayers();
         showForm = false;
     }
@@ -265,7 +271,12 @@ else
     private async Task Delete(Player player)
     {
         players.RemoveAll(p => p.Id == player.Id);
-        await Storage.SavePlayersAsync(players);
+        var success = await SupabaseService.SavePlayersAsync(players);
+        if (!success)
+        {
+            message = "Błąd usunięcia z bazy danych!";
+            return;
+        }
         await LoadPlayers();
         message = $"Usunięto: {player.Name}";
     }

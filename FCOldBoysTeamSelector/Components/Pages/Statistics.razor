@@ -2,6 +2,7 @@
 @using FCOldBoysTeamSelector.Models
 @using FCOldBoysTeamSelector.Helpers
 @inject LocalStorageService Storage
+@inject SupabaseService SupabaseService
 
 <PageTitle>Statystyki</PageTitle>
 
@@ -124,7 +125,7 @@ else
     else
     {
         <div class="card shadow-sm">
-            <div class="card-header fw-bold">👤 Statystyki zawodników (wg zapisanych meczów)</div>
+            <div class="card-header fw-bold">👤 Statystyki zawodników</div>
             <div class="table-responsive">
                 <table class="table table-hover table-bordered mb-0">
                     <thead class="table-dark">
@@ -136,6 +137,7 @@ else
                             <th class="text-center text-danger">Przegrane</th>
                             <th class="text-center">% wygranych</th>
                             <th class="text-center">Obecności</th>
+                            <th class="text-center">% frekwencji</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -158,13 +160,24 @@ else
                                     </div>
                                 </td>
                                 <td class="text-center">@s.Appearances</td>
+                                <td class="text-center">
+                                    @if (s.Matches > 0)
+                                    {
+                                        @($"{s.FrequencyPercent:F1}%")
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
             <div class="card-footer text-muted small">
-                Uwzględniane są tylko mecze z wpisanym wynikiem. Obecności = łączna liczba meczów (z rezerwa włącznie).
+                Uwzględniane są tylko mecze z wpisanym wynikiem. Obecności = łączna liczba meczów (z rezerwa włącznie). <br/>
+                Frekwencja = (Obecności / Mecze z wynikiem) × 100%
             </div>
         </div>
     }
@@ -173,7 +186,7 @@ else
 @code {
     private string activeTab = "history";
     private List<MatchRecord> matches = [];
-    private List<PlayerStatRow> playerStats = [];
+    private List<PlayerStatsDisplay> playerStats = [];
 
     private int? editingMatchId;
     private int? editScore1;
@@ -186,6 +199,7 @@ else
 
     private async Task LoadData()
     {
+        // Pobierz meczy z localStorage (dopóki nie mamy Supabase do meczów)
         matches = await Storage.GetMatchRecordsAsync();
         BuildPlayerStats();
     }
@@ -204,6 +218,8 @@ else
         playerStats = playerKeys.Select(pk =>
         {
             var appearances = allEntries.Count(e => e.PlayerId == pk.PlayerId);
+            var matchesWithResults = withResults.Count(m =>
+                m.PlayerEntries.Any(e => e.PlayerId == pk.PlayerId && e.TeamNumber != 0));
 
             int wins = 0, draws = 0, losses = 0, matchCount = 0;
             foreach (var m in withResults)
@@ -217,7 +233,7 @@ else
                 else losses++;
             }
 
-            return new PlayerStatRow
+            return new PlayerStatsDisplay
             {
                 Name        = pk.Name,
                 Nationality = pk.Nationality,
@@ -226,7 +242,8 @@ else
                 Draws       = draws,
                 Losses      = losses,
                 Appearances = appearances,
-                WinRate     = matchCount == 0 ? 0 : (double)wins / matchCount * 100
+                WinRate     = matchCount == 0 ? 0 : (double)wins / matchCount * 100,
+                FrequencyPercent = matchCount > 0 ? (double)appearances / matchCount * 100 : 0
             };
         }).Where(s => s.Appearances > 0).ToList();
     }
@@ -263,15 +280,16 @@ else
         BuildPlayerStats();
     }
 
-    private class PlayerStatRow
+    private class PlayerStatsDisplay
     {
-        public string Name        { get; set; } = "";
+        public string Name { get; set; } = "";
         public string Nationality { get; set; } = "";
-        public int Matches     { get; set; }
-        public int Wins        { get; set; }
-        public int Draws       { get; set; }
-        public int Losses      { get; set; }
+        public int Matches { get; set; }
+        public int Wins { get; set; }
+        public int Draws { get; set; }
+        public int Losses { get; set; }
         public int Appearances { get; set; }
-        public double WinRate  { get; set; }
+        public double WinRate { get; set; }
+        public double FrequencyPercent { get; set; }
     }
 }

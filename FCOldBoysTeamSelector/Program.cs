@@ -9,6 +9,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped<TeamGeneratorService>();
 builder.Services.AddScoped<LocalStorageService>();
+builder.Services.AddScoped<SupabaseService>();
 
 await builder.Build().RunAsync();
 
