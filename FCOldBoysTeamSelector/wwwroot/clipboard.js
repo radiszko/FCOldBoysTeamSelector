@@ -1,22 +1,33 @@
 window.clipboardHelper = {
-    copyText: async function (text) {
-        try {
-            await navigator.clipboard.writeText(text);
-            return true;
-        } catch {
-            // fallback dla starszych przeglądarek
-            const el = document.createElement('textarea');
-            el.value = text;
-            el.style.position = 'fixed';
-            el.style.opacity = '0';
-            document.body.appendChild(el);
-            el.select();
-            const ok = document.execCommand('copy');
-            document.body.removeChild(el);
-            return ok;
+    copyText: function (text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            return navigator.clipboard.writeText(text).then(function () {
+                return true;
+            }).catch(function () {
+                return fallbackCopy(text);
+            });
         }
+        return Promise.resolve(fallbackCopy(text));
     }
 };
+
+function fallbackCopy(text) {
+    try {
+        var el = document.createElement('textarea');
+        el.value = text;
+        el.style.position = 'fixed';
+        el.style.left = '-9999px';
+        el.style.opacity = '0';
+        document.body.appendChild(el);
+        el.focus();
+        el.select();
+        var ok = document.execCommand('copy');
+        document.body.removeChild(el);
+        return ok;
+    } catch (e) {
+        return false;
+    }
+}
 
 window.storage = {
     save: function (key, jsonStr) {

@@ -859,7 +859,14 @@ else
             }
         }
 
-        copySuccess = await JS.InvokeAsync<bool>("clipboardHelper.copyText", sb.ToString());
+        try
+        {
+            copySuccess = await JS.InvokeAsync<bool>("clipboardHelper.copyText", sb.ToString());
+        }
+        catch
+        {
+            copySuccess = false;
+        }
     }
 
     // --- Renderery ---
