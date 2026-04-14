@@ -356,11 +356,12 @@ else
                                 </tr>
                             </thead>
                             <tbody>
-                                @CompareRow("⚡ Szybkość",   FieldStat(team1, p => p.Speed),    FieldStat(team2, p => p.Speed))
-                                @CompareRow("🏃 Wybieganie", FieldStat(team1, p => p.Stamina),  FieldStat(team2, p => p.Stamina))
-                                @CompareRow("🛡️ Obrona",     FieldStat(team1, p => p.Defense),  FieldStat(team2, p => p.Defense))
-                                @CompareRow("⚔️ Atak",       FieldStat(team1, p => p.Attack),   FieldStat(team2, p => p.Attack))
-                                @CompareRow("💪 Siła",       FieldStat(team1, p => p.Strength), FieldStat(team2, p => p.Strength))
+                                @CompareRow("⚡ Szybkość",   FieldStat(team1, p => p.Speed),       FieldStat(team2, p => p.Speed))
+                                @CompareRow("🏃 Wybieganie", FieldStat(team1, p => p.Stamina),     FieldStat(team2, p => p.Stamina))
+                                @CompareRow("🛡️ Obrona",     FieldStat(team1, p => p.Defense),     FieldStat(team2, p => p.Defense))
+                                @CompareRow("🎯 Gra bez piłki", FieldStat(team1, p => p.GraBezPilki), FieldStat(team2, p => p.GraBezPilki))
+                                @CompareRow("⚽ Gra z piłką",  FieldStat(team1, p => p.GraZPilka),   FieldStat(team2, p => p.GraZPilka))
+                                @CompareRow("💪 Siła",       FieldStat(team1, p => p.Strength),    FieldStat(team2, p => p.Strength))
                                 <tr class="table-dark fw-bold">
                                     <td>🏆 Łącznie</td>
                                     <td class="text-center text-success">@FieldTotal(team1)</td>

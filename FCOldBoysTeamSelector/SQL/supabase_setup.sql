@@ -1,22 +1,22 @@
--- Seed data: Zawodnicy (bez hardcoded w kodzie)
-INSERT INTO players (name, nationality, group_id, is_goalkeeper, speed, stamina, defense, attack, strength) VALUES
-('Roberto Nervosso', 'IT', 1, false, 8, 7, 5, 8, 6),
-('Marco Zvodić', 'HR', 1, false, 7, 8, 6, 7, 7),
-('Radko Skodić', 'HR', 1, false, 6, 6, 8, 5, 8),
-('Nico Pantofelić', 'HR', 1, false, 9, 7, 4, 9, 5),
-('Sebastian Hojny', 'CZ', 1, false, 7, 9, 6, 7, 6),
-('Pavlo Glovković', 'HR', 1, false, 6, 7, 7, 6, 7),
-('Igoro Serata', 'IT', 2, false, 8, 6, 6, 8, 7),
-('Zoran Zalević', 'HR', 2, false, 5, 6, 9, 4, 9),
-('Dragan Zastavić', 'HR', 2, false, 7, 7, 7, 7, 7),
-('Davor Dryblović', 'HR', 2, false, 9, 8, 3, 9, 4),
-('Tomo Torpedić', 'HR', 2, false, 8, 7, 5, 8, 6),
-('David Krasnalić', 'HR', 2, false, 6, 6, 7, 6, 8),
-('Tin Elektrić', 'HR', 3, false, 9, 9, 4, 8, 5),
-('Paolo Portiere', 'IT', 4, true, 5, 5, 9, 3, 8),
-('Zeb Macahan', 'US', 3, false, 7, 8, 6, 7, 8),
-('Cvetan Gregorić', 'HR', 3, false, 6, 7, 8, 5, 8),
-('Tacco Luppo', 'IT', 4, false, 6, 6, 6, 6, 6)
+-- Seed data: Zawodnicy
+INSERT INTO players (name, nationality, group_id, is_goalkeeper, speed, stamina, defense, gra_bez_pilki, gra_z_pilka, strength) VALUES
+('Roberto Nervosso', 'IT', 1, false, 7, 9, 9, 6, 7, 9),
+('Marco Zvodić', 'HR', 1, false, 5, 6, 9, 8, 9, 9),
+('Radko Skodić', 'HR', 1, false, 7, 7, 9, 6, 5, 10),
+('Nico Pantofelić', 'HR', 1, false, 8, 8, 9, 6, 8, 6),
+('Sebastian Hojny', 'CZ', 1, false, 3, 3, 6, 7, 9, 9),
+('Pavlo Glovković', 'HR', 1, false, 7, 6, 7, 10, 7, 10),
+('Igoro Serata', 'IT', 2, false, 5, 5, 7, 7, 8, 9),
+('Zoran Zalević', 'HR', 2, false, 3, 5, 9, 6, 5, 10),
+('Dragan Zastavić', 'HR', 2, false, 8, 8, 10, 5, 7, 10),
+('Davor Dryblović', 'HR', 2, false, 9, 6, 5, 9, 10, 8),
+('Tomo Torpedić', 'HR', 2, false, 10, 9, 6, 7, 8, 7),
+('David Krasnalić', 'HR', 2, false, 10, 9, 6, 9, 7, 5),
+('Tin Elektrić', 'HR', 3, false, 8, 10, 8, 7, 6, 7),
+('Paolo Portiere', 'IT', 4, true, 5, 5, 5, 5, 5, 5),
+('Zeb Macahan', 'US', 3, false, 8, 8, 8, 7, 4, 7),
+('Cvetan Gregorić', 'HR', 3, false, 6, 7, 9, 5, 6, 9),
+('Tacco Luppo', 'IT', 4, false, 9, 7, 6, 8, 8, 8)
 ON CONFLICT (id) DO NOTHING;
 
 -- Tabela do przechowywania statystyk zawodników

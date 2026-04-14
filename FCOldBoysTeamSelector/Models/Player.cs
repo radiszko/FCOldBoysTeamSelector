@@ -27,8 +27,12 @@ public class Player
     public int Defense { get; set; } = 5;   // Obrona
 
     [Range(1, 10, ErrorMessage = "Wartość musi być od 1 do 10")]
-    [JsonPropertyName("attack")]
-    public int Attack { get; set; } = 5;    // Atak
+    [JsonPropertyName("gra_bez_pilki")]
+    public int GraBezPilki { get; set; } = 5;    // Gra bez piłki
+
+    [Range(1, 10, ErrorMessage = "Wartość musi być od 1 do 10")]
+    [JsonPropertyName("gra_z_pilka")]
+    public int GraZPilka { get; set; } = 5;    // Gra z piłką
 
     [Range(1, 10, ErrorMessage = "Wartość musi być od 1 do 10")]
     [JsonPropertyName("strength")]
@@ -48,9 +52,9 @@ public class Player
 
     // Sumaryczny rating
     [JsonIgnore]
-    public int TotalRating => Speed + Stamina + Defense + Attack + Strength;
+    public int TotalRating => Speed + Stamina + Defense + GraBezPilki + GraZPilka + Strength;
 
     // Średni rating
     [JsonIgnore]
-    public double AverageRating => TotalRating / 5.0;
+    public double AverageRating => TotalRating / 6.0;
 }

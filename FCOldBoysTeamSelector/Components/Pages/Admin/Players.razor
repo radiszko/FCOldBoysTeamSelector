@@ -70,10 +70,16 @@
                         <div class="progress mt-1" style="height:6px"><div class="progress-bar bg-info" style="width:@(editingPlayer.Defense*10)%"></div></div>
                     </div>
                     <div class="col-6 col-md-2">
-                        <label class="form-label fw-semibold">⚔️ Atak</label>
-                        <InputNumber class="form-control text-center" @bind-Value="editingPlayer.Attack" min="1" max="10" />
-                        <ValidationMessage For="() => editingPlayer.Attack" class="text-danger small" />
-                        <div class="progress mt-1" style="height:6px"><div class="progress-bar bg-danger" style="width:@(editingPlayer.Attack*10)%"></div></div>
+                        <label class="form-label fw-semibold">🎯 Gra bez piłki</label>
+                        <InputNumber class="form-control text-center" @bind-Value="editingPlayer.GraBezPilki" min="1" max="10" />
+                        <ValidationMessage For="() => editingPlayer.GraBezPilki" class="text-danger small" />
+                        <div class="progress mt-1" style="height:6px"><div class="progress-bar bg-danger" style="width:@(editingPlayer.GraBezPilki*10)%"></div></div>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label fw-semibold">⚽ Gra z piłką</label>
+                        <InputNumber class="form-control text-center" @bind-Value="editingPlayer.GraZPilka" min="1" max="10" />
+                        <ValidationMessage For="() => editingPlayer.GraZPilka" class="text-danger small" />
+                        <div class="progress mt-1" style="height:6px"><div class="progress-bar bg-purple" style="width:@(editingPlayer.GraZPilka*10)%"></div></div>
                     </div>
                     <div class="col-6 col-md-2">
                         <label class="form-label fw-semibold">💪 Siła</label>
@@ -113,7 +119,8 @@ else
                     <th class="text-center" title="Szybkość">⚡ Szybk.</th>
                     <th class="text-center" title="Wybieganie">🏃 Wybieg.</th>
                     <th class="text-center" title="Obrona">🛡️ Obrona</th>
-                    <th class="text-center" title="Atak">⚔️ Atak</th>
+                    <th class="text-center" title="Gra bez piłki">🎯 GBP</th>
+                    <th class="text-center" title="Gra z piłką">⚽ GZP</th>
                     <th class="text-center" title="Siła">💪 Siła</th>
                     <th class="text-center">Łącznie</th>
                     <th></th>
@@ -147,11 +154,12 @@ else
                         <td class="text-center">@RatingBadge(player.Speed)</td>
                         <td class="text-center">@RatingBadge(player.Stamina)</td>
                         <td class="text-center">@RatingBadge(player.Defense)</td>
-                        <td class="text-center">@RatingBadge(player.Attack)</td>
+                        <td class="text-center">@RatingBadge(player.GraBezPilki)</td>
+                        <td class="text-center">@RatingBadge(player.GraZPilka)</td>
                         <td class="text-center">@RatingBadge(player.Strength)</td>
                         <td class="text-center">
                             <strong class="text-primary">@player.TotalRating</strong>
-                            <small class="text-muted">/50</small>
+                            <small class="text-muted">/60</small>
                         </td>
                         <td>
                             <div class="d-flex gap-1 justify-content-end">
@@ -212,7 +220,8 @@ else
             Speed = player.Speed,
             Stamina = player.Stamina,
             Defense = player.Defense,
-            Attack = player.Attack,
+            GraBezPilki = player.GraBezPilki,
+            GraZPilka = player.GraZPilka,
             Strength = player.Strength,
             GroupId = player.GroupId,
             IsGoalkeeper = player.IsGoalkeeper,
