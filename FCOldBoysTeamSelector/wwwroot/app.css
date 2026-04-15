@@ -13,6 +13,15 @@ html, body {
     filter: drop-shadow(0 0 3px rgba(255,255,255,0.3));
 }
 
+/* Page header icon (logo in h1) */
+.page-header-icon {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+}
+
 a, .btn-link {
     color: #006bb7;
 }

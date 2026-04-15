@@ -30,6 +30,15 @@
     object-fit: contain;
 }
 
+.nav-link-logo {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    margin-right: 0.75rem;
+    position: relative;
+    top: -1px;
+}
+
 .bi {
     display: inline-block;
     position: relative;

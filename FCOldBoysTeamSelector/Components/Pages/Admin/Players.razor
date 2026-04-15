@@ -6,7 +6,7 @@
 <PageTitle>Zarządzanie Zawodnikami</PageTitle>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="mb-0"><i class="bi bi-futbol"></i> Zarządzanie Zawodnikami</h1>
+    <h1 class="mb-0"><i class="bi bi-shop"></i> Zarządzanie Zawodnikami</h1>
     <button class="btn btn-success" @onclick="AddNew">
         <i class="bi bi-plus-lg"></i> Dodaj zawodnika
     </button>
@@ -76,7 +76,7 @@
                         <div class="progress mt-1" style="height:6px"><div class="progress-bar bg-danger" style="width:@(editingPlayer.GraBezPilki*10)%"></div></div>
                     </div>
                     <div class="col-6 col-md-2">
-                        <label class="form-label fw-semibold"><i class="bi bi-futbol"></i> Gra z piłką</label>
+                        <label class="form-label fw-semibold">Gra z piłką</label>
                         <InputNumber class="form-control text-center" @bind-Value="editingPlayer.GraZPilka" min="1" max="10" />
                         <ValidationMessage For="() => editingPlayer.GraZPilka" class="text-danger small" />
                         <div class="progress mt-1" style="height:6px"><div class="progress-bar bg-purple" style="width:@(editingPlayer.GraZPilka*10)%"></div></div>
@@ -120,7 +120,7 @@ else
                     <th class="text-center" title="Wybieganie">🏃 Wybieg.</th>
                     <th class="text-center" title="Obrona">🛡️ Obrona</th>
                     <th class="text-center" title="Gra bez piłki">🎯 GBP</th>
-                    <th class="text-center" title="Gra z piłką"><i class="bi bi-futbol"></i> GZP</th>
+                    <th class="text-center" title="Gra z piłką">GZP</th>
                     <th class="text-center" title="Siła">💪 Siła</th>
                     <th class="text-center">Łącznie</th>
                     <th></th>
