@@ -2,6 +2,17 @@ html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+/* Logo styles */
+.navbar-brand-logo,
+.app-header-logo {
+    filter: drop-shadow(0 0 2px rgba(0,0,0,0.3));
+}
+
+.theme-dark .navbar-brand-logo,
+.theme-dark .app-header-logo {
+    filter: drop-shadow(0 0 3px rgba(255,255,255,0.3));
+}
+
 a, .btn-link {
     color: #006bb7;
 }

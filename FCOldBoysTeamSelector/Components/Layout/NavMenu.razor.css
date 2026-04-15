@@ -24,6 +24,12 @@
     font-size: 1.1rem;
 }
 
+.navbar-brand-logo {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
 .bi {
     display: inline-block;
     position: relative;
