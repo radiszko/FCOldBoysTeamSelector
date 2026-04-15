@@ -1,4 +1,5 @@
 ﻿@inherits LayoutComponentBase
+@inject IJSRuntime JS
 
 <div class="page">
     <div class="sidebar">
@@ -8,6 +9,16 @@
     <main>
         <div class="top-row px-4">
             <span class="text-muted small">FC Old Boys Team Selector v1.0.0</span>
+            <button class="btn btn-sm btn-outline-secondary ms-3" @onclick="ToggleDarkMode" title="Zmień motyw">
+                @if (isDarkMode)
+                {
+                    <span>☀️ Jasny</span>
+                }
+                else
+                {
+                    <span>🌙 Ciemny</span>
+                }
+            </button>
         </div>
 
         <article class="content px-4">
@@ -15,3 +26,33 @@
         </article>
     </main>
 </div>
+
+@code {
+    private bool isDarkMode = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Load saved theme from localStorage
+        try
+        {
+            var savedTheme = await JS.InvokeAsync<string>("localStorage.getItem", "theme");
+            if (savedTheme == "dark")
+            {
+                isDarkMode = true;
+                await SetDarkMode(true);
+            }
+        }
+        catch { /* Ignore if localStorage not available */ }
+    }
+
+    private async Task ToggleDarkMode()
+    {
+        isDarkMode = !isDarkMode;
+        await SetDarkMode(isDarkMode);
+    }
+
+    private async Task SetDarkMode(bool darkMode)
+    {
+        await JS.InvokeVoidAsync("setTheme", darkMode);
+    }
+}

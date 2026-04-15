@@ -40,3 +40,18 @@ window.storage = {
         try { localStorage.removeItem(key); } catch {}
     }
 };
+
+// Theme management
+window.setTheme = function (isDark) {
+    if (isDark) {
+        document.documentElement.classList.add("theme-dark");
+        localStorage.setItem("theme", "dark");
+    } else {
+        document.documentElement.classList.remove("theme-dark");
+        localStorage.setItem("theme", "light");
+    }
+};
+
+window.getTheme = function () {
+    return localStorage.getItem("theme") || "light";
+};

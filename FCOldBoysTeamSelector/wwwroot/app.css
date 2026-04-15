@@ -79,3 +79,127 @@ h1:focus {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+/* ========================================
+   DARK MODE
+   ======================================== */
+
+.theme-dark {
+    --bs-body-bg: #1a1a2e;
+    --bs-body-color: #e8e8e8;
+    --bs-card-bg: #16213e;
+    --bs-card-border-color: #0f3460;
+    --bs-border-color: #0f3460;
+    --bs-secondary-bg: #16213e;
+    --bs-tertiary-bg: #1a1a2e;
+}
+
+.theme-dark body {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+}
+
+.theme-dark .card {
+    background-color: var(--bs-card-bg);
+    border-color: var(--bs-card-border-color);
+    color: var(--bs-body-color);
+}
+
+.theme-dark .list-group-item {
+    background-color: var(--bs-card-bg);
+    border-color: var(--bs-card-border-color);
+    color: var(--bs-body-color);
+}
+
+.theme-dark .list-group-item-action:hover {
+    background-color: var(--bs-secondary-bg);
+}
+
+.theme-dark .top-row {
+    background-color: var(--bs-card-bg);
+    border-bottom-color: var(--bs-card-border-color);
+}
+
+.theme-dark .sidebar {
+    background-image: linear-gradient(180deg, #0f3460 0%, #16213e 70%);
+}
+
+.theme-dark .nav-link {
+    color: #e8e8e8;
+}
+
+.theme-dark .nav-link:hover {
+    color: #fff;
+    background-color: var(--bs-secondary-bg);
+}
+
+.theme-dark .nav-link.active {
+    background-color: #0f3460;
+    color: #fff;
+}
+
+.theme-dark .form-control,
+.theme-dark .form-select {
+    background-color: var(--bs-card-bg);
+    border-color: var(--bs-card-border-color);
+    color: var(--bs-body-color);
+}
+
+.theme-dark .form-control:focus,
+.theme-dark .form-select:focus {
+    background-color: var(--bs-card-bg);
+    color: var(--bs-body-color);
+    border-color: #0f3460;
+}
+
+.theme-dark .table {
+    --bs-table-bg: transparent;
+    --bs-table-border-color: var(--bs-card-border-color);
+    color: var(--bs-body-color);
+}
+
+.theme-dark .table-hover tbody tr:hover {
+    background-color: var(--bs-secondary-bg);
+    color: var(--bs-body-color);
+}
+
+.theme-dark .form-control::placeholder {
+    color: #888;
+}
+
+.theme-dark .text-muted {
+    color: #aaa !important;
+}
+
+.theme-dark .alert {
+    border-color: var(--bs-card-border-color);
+}
+
+.theme-dark .progress {
+    background-color: var(--bs-card-border-color);
+}
+
+.theme-dark .form-floating > label {
+    color: #888;
+}
+
+.theme-dark .form-floating > .form-control:focus ~ label,
+.theme-dark .form-floating > .form-control:not(:placeholder-shown) ~ label {
+    color: #aaa;
+}
+
+/* Override Bootstrap button styles for dark mode */
+.theme-dark .btn-outline-secondary {
+    --bs-btn-color: #e8e8e8;
+    --bs-btn-border-color: #0f3460;
+    --bs-btn-hover-bg: #0f3460;
+    --bs-btn-hover-border-color: #0f3460;
+}
+
+.theme-dark .btn-outline-danger,
+.theme-dark .btn-outline-success,
+.theme-dark .btn-outline-warning,
+.theme-dark .btn-outline-primary,
+.theme-dark .btn-outline-info {
+    color: #e8e8e8;
+}
