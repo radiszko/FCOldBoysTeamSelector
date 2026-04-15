@@ -22,7 +22,7 @@ else
     <!-- NAGŁÓWEK MECZU -->
     <div class="card mb-4 shadow-sm border-success">
         <div class="card-header bg-success text-white fw-bold">📅 Informacje o meczu</div>
-        <div class="card-body">
+        <div class="card-body match-info-dark">
             <div class="row g-3">
                 <div class="col-sm-4">
                     <label class="form-label fw-semibold">Dzień tygodnia</label>
@@ -940,3 +940,25 @@ else
         public int Value { get; set; }
     }
 }
+
+<style>
+.match-info-dark {
+    background-color: #1e3a5f;
+    color: #ffffff;
+}
+
+.match-info-dark .form-label {
+    color: #cfe6ff;
+}
+
+.match-info-dark .form-control,
+.match-info-dark .form-select {
+    background-color: #2b4c73;
+    color: #ffffff;
+    border: 1px solid #3a6ea5;
+}
+
+.match-info-dark .form-control::placeholder {
+    color: #cfe6ff;
+}
+</style>
