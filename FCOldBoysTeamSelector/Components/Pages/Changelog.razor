@@ -1,0 +1,85 @@
+@page "/changelog"
+@using FCOldBoysTeamSelector.Components.Layout
+@inherits LayoutComponentBase
+
+<PageTitle>Changelog</PageTitle>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0"><i class="bi bi-list-ul me-2"></i>Changelog</h1>
+        <span class="badge bg-primary fs-6">v1.0.0</span>
+    </div>
+
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>
+        Wszelkie istotne zmiany w tym projekcie są dokumentowane w pliku Changelog.
+    </div>
+
+    <!-- Version 1.0.0 -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">v1.0.0</h5>
+            <span class="badge bg-light text-dark">2026-04-15</span>
+        </div>
+        <div class="card-body">
+            <div class="mb-4">
+                <h6 class="text-primary"><i class="bi bi-plus-circle me-2"></i>Dodano</h6>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Podstawowa funkcjonalność generowania składów drużyn piłkarskich</li>
+                    <li class="list-group-item">Zarządzanie zawodnikami (CRUD)</li>
+                    <li class="list-group-item">Integracja z Supabase jako bazą danych</li>
+                    <li class="list-group-item">System grup zawodników (always together)</li>
+                    <li class="list-group-item">Oznaczanie bramkarzy</li>
+                    <li class="list-group-item">Generowanie zespołów z uwzględnieniem balansu siły</li>
+                    <li class="list-group-item">Historia meczów z zapisywaniem wyników</li>
+                    <li class="list-group-item">Statystyki graczy</li>
+                    <li class="list-group-item">Clipboard copy functionality</li>
+                    <li class="list-group-item">Panel administracyjny dla graczy</li>
+                    <li class="list-group-item">Responsive design z Bootstrap 5</li>
+                </ul>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="text-warning"><i class="bi bi-arrow-repeat me-2"></i>Zmieniono</h6>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Refactor SupabaseService z hardcoded credentials do konfiguracji</li>
+                    <li class="list-group-item">Dodanie Microsoft.Extensions.Logging.Configuration</li>
+                </ul>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="text-success"><i class="bi bi-check-circle me-2"></i>Naprawiono</h6>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Naprawa błędu kompilacji - brakujący pakiet Logging.Configuration</li>
+                    <li class="list-group-item">Dodanie RLS policy "Allow public read access" dla tabeli players</li>
+                </ul>
+            </div>
+
+            <div>
+                <h6 class="text-danger"><i class="bi bi-shield-check me-2"></i>Bezpieczeństwo</h6>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Publikacyjny klucz API w aplikacji (zalecane użycie Service Key dla operacji zapisu)</li>
+                </ul>
+            </div>
+        </div>
+        <div class="card-footer text-muted small">
+            <i class="bi bi-git me-2"></i>
+            Commit: b987cac | Branch: dev
+        </div>
+    </div>
+
+    <!-- Future versions placeholder -->
+    <div class="card shadow-sm border-secondary">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Przyszłe zmiany</h5>
+        </div>
+        <div class="card-body">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><i class="bi bi-dash-circle me-2"></i>Uwierzytelnianie użytkowników</li>
+                <li class="list-group-item"><i class="bi bi-dash-circle me-2"></i>Eksport/import zawodników (CSV)</li>
+                <li class="list-group-item"><i class="bi bi-dash-circle me-2"></i>Szablony turniejów</li>
+                <li class="list-group-item"><i class="bi bi-dash-circle me-2"></i>Powiadomienia email</li>
+            </ul>
+        </div>
+    </div>
+</div>
