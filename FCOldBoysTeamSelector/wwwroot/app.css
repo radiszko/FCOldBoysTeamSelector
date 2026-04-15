@@ -94,6 +94,30 @@ h1:focus {
     --bs-tertiary-bg: #1a1a2e;
 }
 
+/* Ensure all text is readable */
+.theme-dark body,
+.theme-dark h1, .theme-dark h2, .theme-dark h3, .theme-dark h4, .theme-dark h5, .theme-dark h6,
+.theme-dark p, .theme-dark span, .theme-dark div {
+    color: #e8e8e8;
+}
+
+.theme-dark body {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+}
+
+/* Fix black text elements */
+.theme-dark .card-header,
+.theme-dark .card-body,
+.theme-dark .card-footer {
+    color: #e8e8e8;
+}
+
+.theme-dark .h1, .theme-dark .h2, .theme-dark .h3, .theme-dark .h4, .theme-dark .h5, .theme-dark .h6,
+.theme-dark .h1, .theme-dark .h2, .theme-dark .h3, .theme-dark .h4, .theme-dark .h5, .theme-dark .h6 {
+    color: #fff;
+}
+
 .theme-dark body {
     background-color: var(--bs-body-bg);
     color: var(--bs-body-color);
@@ -162,27 +186,64 @@ h1:focus {
 
 .theme-dark .form-control,
 .theme-dark .form-select {
-    background-color: var(--bs-card-bg);
-    border-color: var(--bs-card-border-color);
-    color: var(--bs-body-color);
+    background-color: #16213e !important;
+    border-color: #e8e8e8 !important;
+    color: #e8e8e8 !important;
 }
 
 .theme-dark .form-control:focus,
 .theme-dark .form-select:focus {
-    background-color: var(--bs-card-bg);
-    color: var(--bs-body-color);
-    border-color: #0f3460;
+    background-color: #16213e !important;
+    color: #e8e8e8 !important;
+    border-color: #fff !important;
+    box-shadow: 0 0 0 0.25rem rgba(232, 232, 232, 0.25);
+}
+
+.theme-dark .form-control::placeholder {
+    color: #888 !important;
+}
+
+/* Checkbox and radio custom styles */
+.theme-dark .form-check-input {
+    background-color: #16213e !important;
+    border-color: #e8e8e8 !important;
+}
+
+.theme-dark .form-check-input:checked {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+}
+
+.theme-dark .form-check-label {
+    color: #e8e8e8;
 }
 
 .theme-dark .table {
     --bs-table-bg: transparent;
     --bs-table-border-color: var(--bs-card-border-color);
-    color: var(--bs-body-color);
+    color: #e8e8e8;
 }
 
 .theme-dark .table-hover tbody tr:hover {
     background-color: var(--bs-secondary-bg);
-    color: var(--bs-body-color);
+    color: #fff;
+}
+
+.theme-dark .table thead {
+    color: #fff;
+}
+
+.theme-dark .table td,
+.theme-dark .table th {
+    color: #e8e8e8;
+}
+
+/* Summary row in team generator */
+.theme-dark .list-group-item.list-group-item-action.bg-success,
+.theme-dark .list-group-item.list-group-item-action.bg-danger,
+.theme-dark .list-group-item.list-group-item-action.bg-warning,
+.theme-dark .list-group-item.list-group-item-action.bg-primary {
+    color: #000 !important;
 }
 
 .theme-dark .form-control::placeholder {
@@ -202,12 +263,19 @@ h1:focus {
 }
 
 .theme-dark .form-floating > label {
-    color: #888;
+    color: #aaa;
 }
 
 .theme-dark .form-floating > .form-control:focus ~ label,
-.theme-dark .form-floating > .form-control:not(:placeholder-shown) ~ label {
-    color: #aaa;
+.theme-dark .form-floating > .form-control:not(:placeholder-shown) ~ label,
+.theme-dark .form-floating > .form-select ~ label {
+    color: #e8e8e8 !important;
+}
+
+/* Option elements in select dropdowns */
+.theme-dark select option {
+    background-color: #16213e;
+    color: #e8e8e8;
 }
 
 /* Override Bootstrap button styles for dark mode */
