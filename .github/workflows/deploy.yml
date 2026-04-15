@@ -27,6 +27,7 @@ jobs:
       - name: Set base href for PROD environment
         run: |
           sed -i 's|<base href="/" />|<base href="/FCOldBoysTeamSelector/" />|g' publish/wwwroot/index.html
+          sed -i 's|var base = "/FCOldBoysTeamSelector";|var base = "/FCOldBoysTeamSelector/";|g' publish/wwwroot/404.html
 
       - name: Add .nojekyll
         run: touch publish/wwwroot/.nojekyll
