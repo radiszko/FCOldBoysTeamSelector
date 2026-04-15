@@ -56,6 +56,10 @@ else
                             @foreach (var m in new[]{0,5,10,15,20,25,30,35,40,45,50,55}) { var mm = m; <option value="@mm">@mm.ToString("D2")</option> }
                         </select>
                     </div>
+                    @if (!IsTimeValid)
+                    {
+                        <div class="text-danger small mt-1">@TimeValidationError</div>
+                    }
                 </div>
                 <div class="col-sm-4">
                     <label class="form-label fw-semibold">Stadion / Miejsce</label>
@@ -406,6 +410,12 @@ else
 
     private string MatchTime => $"{matchHourStart:D2}:{matchMinStart:D2} - {matchHourEnd:D2}:{matchMinEnd:D2}";
 
+    private bool IsTimeValid => matchHourEnd > matchHourStart ||
+                               (matchHourEnd == matchHourStart && matchMinEnd > matchMinStart);
+
+    private string? TimeValidationError => IsTimeValid ? null
+        : "Godzina zakończenia musi być po godzinie rozpoczęcia.";
+
     private int ActiveCount => selectedIds.Except(reserveIds).Count();
     private List<Player> reservePlayers => allPlayers.Where(p => reserveIds.Contains(p.Id)).ToList();
 
@@ -695,6 +705,13 @@ else
         saveSuccess = null;
         try
         {
+            // Walidacja: czas meczu
+            if (!IsTimeValid)
+            {
+                errorMessage = TimeValidationError ?? "Niepoprawny czas meczu.";
+                return;
+            }
+
             var active = allPlayers
                 .Where(p => selectedIds.Contains(p.Id) && !reserveIds.Contains(p.Id))
                 .ToList();
