@@ -2,6 +2,18 @@
 
 Wszystkie istotne zmiany w tym projekcie będą dokumentowane w pliku CHANGELOG.md. Format oparty o [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.1.0] - 2026-04-15
+
+### Added
+- Tryb ciemny (dark mode) z toggle w prawym górnym rogu
+- Zapisywanie preferencji motywu w localStorage
+- Pełne wsparcie dla ciemnego motywu we wszystkich komponentach
+
+### Changed
+- Zaktualizowano style CSS dla lepszego kontrastu w obu trybach
+
+---
+
 ## [1.0.0] - 2026-04-15
 
 ### Added
