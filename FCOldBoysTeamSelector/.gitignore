@@ -1,0 +1,111 @@
+## Global .gitignore for .NET/Blazor projects
+
+## Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+## Visual Studio files
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## Visual Studio Code
+.vscode/
+
+## Rider
+.idea/
+
+## Build results
+*.dll
+*.exe
+*.pdb
+*.usersecrets
+*.secrets
+
+## NuGet
+packages/
+*.nupkg
+*.snupkg
+.nuget/
+
+## .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+## ASP.NET Core
+appsettings.Development.json
+appsettings.*.local
+
+## Blazor
+wwwroot/_framework/blazor.webassembly.js
+wwwroot/_framework/blazor.boot.json
+wwwroot/_framework/*.pdb
+wwwroot/_framework/*.deps.json
+
+## User secrets
+*.usersecrets
+
+## Environment variables
+.env
+.env.*
+*.env
+
+## Secrets
+*.pfx
+*.p12
+*.key
+credentials.json
+secrets.json
+
+## Testing
+TestResults/
+[nN]unit/
+coverage/
+*.coverage
+*.vcxproj.dtbcache.json
+
+## Temp files
+*.tmp
+*.bak
+*.swp
+*~
+
+## macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+## Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.Cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+## JetBrains
+*.ipr
+*.iws
+*.iml
+.idea/
+
+## Version files (auto-generated)
+.version.bak

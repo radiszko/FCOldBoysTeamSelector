@@ -1,0 +1,118 @@
+name: Version Bump & Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: 'Type of version bump'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - prerelease
+        default: 'patch'
+
+  pull_request:
+    branches: [main]
+    types: [closed]
+
+jobs:
+  bump-version:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.semver.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get current version
+        id: current_version
+        run: |
+          VERSION=$(cat .version 2>/dev/null || echo "1.0.0")
+          echo "current=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
+
+      - name: Bump version
+        id: semver
+        uses: booji/semver-action@v1
+        with:
+          version: ${{ steps.current_version.outputs.current }}
+          bump: ${{ github.event.inputs.bump_type || 'patch' }}
+
+      - name: Update .version file
+        run: echo "${{ steps.semver.outputs.version }}" > .version
+
+      - name: Update csproj version
+        uses: devlikeapro/replace-in-files@v1
+        with:
+          files: 'FCOldBoysTeamSelector.csproj'
+          replacements: '<Version>[0-9]+\.[0-9]+\.[0-9]+</Version>
+<Version>${{ steps.semver.outputs.version }}</Version>'
+
+      - name: Update MainLayout.razor version
+        uses: devlikeapro/replace-in-files@v1
+        with:
+          files: 'Components/Layout/MainLayout.razor'
+          replacements: 'FC Old Boys Team Selector v[0-9]+\.[0-9]+\.[0-9]+
+FC Old Boys Team Selector v${{ steps.semver.outputs.version }}'
+
+      - name: Update index.html version
+        uses: devlikeapro/replace-in-files@v1
+        with:
+          files: 'wwwroot/index.html'
+          replacements: 'FC Old Boys Team Selector v[0-9]+\.[0-9]+\.[0-9]+
+FC Old Boys Team Selector v${{ steps.semver.outputs.version }}'
+
+      - name: Update version.json
+        uses: devlikeapro/replace-in-files@v1
+        with:
+          files: 'wwwroot/version.json'
+          replacements: '"version": "[0-9]+\.[0-9]+\.[0-9]+"
+"version": "${{ steps.semver.outputs.version }}"'
+
+      - name: Commit and push version bump
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: bump version to ${{ steps.semver.outputs.version }}"
+          file_pattern: '.version *.csproj wwwroot/index.html wwwroot/version.json Components/Layout/MainLayout.razor'
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.semver.outputs.version }}
+          name: Release v${{ steps.semver.outputs.version }}
+          body: "Release v${{ steps.semver.outputs.version }} - ${{ github.event.inputs.bump_type || 'patch' }} bump"
+          draft: false
+          prerelease: ${{ github.event.inputs.bump_type == 'prerelease' }}
+
+  build:
+    needs: bump-version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Publish Blazor WASM
+        run: dotnet publish --configuration Release -o publish
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: blazor-app
+          path: publish/wwwroot

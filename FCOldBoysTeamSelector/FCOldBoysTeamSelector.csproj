@@ -5,6 +5,15 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+
+    <!-- Application Versioning -->
+    <ApplicationTitle>FC Old Boys Team Selector</ApplicationTitle>
+    <Version>1.0.0</Version>
+    <FileVersion>$(Version)</FileVersion>
+    <AssemblyVersion>$(Version)</AssemblyVersion>
+    <PackageVersion>$(Version)</PackageVersion>
+    <InformationalVersion>$(Version)</InformationalVersion>
+    <Product>$(ApplicationTitle) v$(Version)</Product>
   </PropertyGroup>
 
   <ItemGroup>
