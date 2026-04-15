@@ -1,0 +1,349 @@
+@page "/help"
+@using FCOldBoysTeamSelector.Models
+@using FCOldBoysTeamSelector.Services
+@using FCOldBoysTeamSelector.Helpers
+@inject LocalStorageService Storage
+
+<PageTitle>Pomoc</PageTitle>
+
+<div class="container mt-4">
+    <h1 class="mb-4"><i class="bi bi-question-circle me-2"></i>Pomoc - Instrukcja użycia</h1>
+
+    <!-- Nawigacja po sekcjach -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <h6 class="fw-bold mb-3">Spis treści:</h6>
+            <div class="list-group">
+                <a href="#szybki-start" class="list-group-item list-group-item-action">
+                    <i class="bi bi-1 me-2"></i>Szybki start
+                </a>
+                <a href="#generowanie" class="list-group-item list-group-item-action">
+                    <i class="bi bi-2 me-2"></i>Generowanie składów
+                </a>
+                <a href="#zarzadzanie" class="list-group-item list-group-item-action">
+                    <i class="bi bi-3 me-2"></i>Zarządzanie zawodnikami
+                </a>
+                <a href="#grupy" class="list-group-item list-group-item-action">
+                    <i class="bi bi-4 me-2"></i>System grupowania zawodników
+                </a>
+                <a href="#bramkarze" class="list-group-item list-group-item-action">
+                    <i class="bi bi-5 me-2"></i>Brankarze (GK)
+                </a>
+                <a href="#statystyki" class="list-group-item list-group-item-action">
+                    <i class="bi bi-6 me-2"></i>Statystyki i historia
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEKCJA 1: Szybki start -->
+    <div id="szybki-start" class="card mb-4 shadow-sm border-primary">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-rocket-takeoff me-2"></i>1. Szybki start</h5>
+        </div>
+        <div class="card-body">
+            <ol class="list-group list-group-numbered">
+                <li class="list-group-item">
+                    <strong>Dodaj zawodników</strong>
+                    <br/><small class="text-muted">Przejdź do strony "Zawodnicy" i kliknij "+ Dodaj zawodnika"</small>
+                </li>
+                <li class="list-group-item">
+                    <strong>Wygeneruj skład</strong>
+                    <br/><small class="text-muted">Na stronie głównej wybierz zawodników i kliknij "Generuj drużyny"</small>
+                </li>
+                <li class="list-group-item">
+                    <strong>Zapisz do historii</strong>
+                    <br/><small class="text-muted">Po wygenerowaniu kliknij "Zapisz do historii" aby zachować skład</small>
+                </li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- SEKCJA 2: Generowanie składów -->
+    <div id="generowanie" class="card mb-4 shadow-sm border-success">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="bi bi-futbol me-2"></i>2. Generowanie składów</h5>
+        </div>
+        <div class="card-body">
+            <h6 class="fw-bold">Krok 1: Informacje o meczu</h6>
+            <div class="alert alert-dark border mb-4">
+                <div class="d-flex gap-4">
+                    <div><strong>Dzień:</strong><br/>Poniedziałek / Wtorek / ... / Niedziela</div>
+                    <div><strong>Godzina:</strong><br/>19:00 — 20:30</div>
+                    <div><strong>Miejsce:</strong><br/>np. Manhattan Park Stadium</div>
+                </div>
+            </div>
+
+            <h6 class="fw-bold mt-4">Krok 2: Wybór zawodników</h6>
+            <p>Klikaj na zawodników aby ich wybrać:</p>
+            <div class="mb-3">
+                <span class="badge bg-light p-2 me-2">⬜ Niewybrany</span>
+                <span class="badge bg-primary p-2 me-2">🔵 Wybrany</span>
+                <span class="badge bg-warning p-2 me-2">🧤 Bramkarz/Rezerwowy</span>
+                <span class="badge bg-info p-2 me-2">📌 Przypięty</span>
+            </div>
+
+            <h6 class="fw-bold mt-4">Krok 3: Przyciski akcji</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Przycisk</th>
+                            <th>Funkcja</th>
+                            <th>Przykład</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><button class="btn btn-sm btn-outline-secondary">Wszyscy</button></td>
+                            <td>Zaznacza wszystkich zawodników</td>
+                            <td>Wybór 18 z 20 graczy</td>
+                        </tr>
+                        <tr>
+                            <td><button class="btn btn-sm btn-outline-secondary">Wyczyść</button></td>
+                            <td>Odznacza wszystkich zawodników</td>
+                            <td>Powtórny wybór</td>
+                        </tr>
+                        <tr>
+                            <td><button class="btn btn-sm btn-outline-warning">⬇</button></td>
+                            <td>Przenosi do rezerwowych</td>
+                            <td>Zostawić 2 graczy jako rezerwę</td>
+                        </tr>
+                        <tr>
+                            <td><button class="btn btn-sm btn-outline-secondary">↑</button></td>
+                            <td>Przesuwa w górę listy</td>
+                            <td>Zmiana kolejności wyjściowej</td>
+                        </tr>
+                        <tr>
+                            <td><button class="btn btn-sm btn-outline-secondary">↓</button></td>
+                            <td>Przesuwa w dół listy</td>
+                            <td>Zmiana kolejności wyjściowej</td>
+                        </tr>
+                        <tr>
+                            <td><button class="btn btn-sm btn-outline-secondary">C</button></td>
+                            <td>Ustawia kapitana</td>
+                            <td>Kapitan drużyny (🏆)</td>
+                        </tr>
+                        <tr>
+                            <td><button class="btn btn-sm btn-outline-danger">→</button></td>
+                            <td>Przenosi do Drużyny 2</td>
+                            <td>Ręczna korekta składów</td>
+                        </tr>
+                        <tr>
+                            <td><button class="btn btn-sm btn-outline-success">←</button></td>
+                            <td>Przenosi do Drużyny 1</td>
+                            <td>Ręczna korekta składów</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h6 class="fw-bold mt-4">Krok 4: Przypinanie zawodników (📌)</h6>
+            <div class="alert alert-info">
+                <strong>Jak to działa:</strong> Podwójne kliknięcie na zawodnika w liście zawodników
+                <br/><strong>📌 zielony:</strong> Zawsze w Drużynie 1
+                <br/><strong>📌 czerwony:</strong> Zawsze w Drużynie 2
+            </div>
+        </div>
+    </div>
+
+    <!-- SEKCJA 3: Zarządzanie zawodnikami -->
+    <div id="zarzadzanie" class="card mb-4 shadow-sm border-info">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="bi bi-people me-2"></i>3. Zarządzanie zawodnikami</h5>
+        </div>
+        <div class="card-body">
+            <h6 class="fw-bold">Dodawanie nowego zawodnika</h6>
+            <div class="border p-3 rounded mb-4 bg-light">
+                <strong>Formularz nowego zawodnika:</strong>
+                <ul class="mb-0 mt-2">
+                    <li><strong>Imię i nazwisko:</strong> Jan Kowalski (wymagane)</li>
+                    <li><strong>Flaga (narodowość):</strong> 🇵🇱 Polska</li>
+                    <li><strong>Statystyki (1-10):</strong></li>
+                </ul>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Statystyka</th>
+                            <th>Ikona</th>
+                            <th>Opis</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Szybkość</td><td>⚡</td><td>Sprint, dynamika ruchu</td></tr>
+                        <tr><td>Wybieganie</td><td>🏃</td><td>Wytrzymałość na pełny mecz</td></tr>
+                        <tr><td>Obrona</td><td>🛡️</td><td>Gra obronna, interwencje</td></tr>
+                        <tr><td>Gra bez piłki</td><td>🎯</td><td>Ruch, pozycjonowanie</td></tr>
+                        <tr><td>Gra z piłką</td><td>🎨</td><td>Kontrola, podania, drybling</td></tr>
+                        <tr><td>Siła</td><td>💪</td><td>Gra fizyczna, pojedynki</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h6 class="fw-bold mt-4">Przykład zawodnika</h6>
+            <div class="border rounded p-3">
+                <div class="d-flex align-items-center mb-2">
+                    <span style="font-size:1.5rem">🇵🇱</span>
+                    <strong style="font-size:1.1rem" class="ms-2">Jan Kowalski</strong>
+                </div>
+                <div class="row text-center">
+                    <div class="col-2"><strong>⚡ 7</strong></div>
+                    <div class="col-2"><strong>🏃 8</strong></div>
+                    <div class="col-2"><strong>🛡️ 6</strong></div>
+                    <div class="col-2"><strong>🎯 9</strong></div>
+                    <div class="col-2"><strong>🎨 7</strong></div>
+                    <div class="col-2"><strong>💪 5</strong></div>
+                </div>
+                <div class="mt-2 text-muted small">Średnia: 7.0 | Całkowita siła: 42</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEKCJA 4: System grupowania -->
+    <div id="grupy" class="card mb-4 shadow-sm border-warning">
+        <div class="card-header bg-warning">
+            <h5 class="mb-0"><i class="bi bi-people-fill me-2"></i>4. System grupowania zawodników</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-warning">
+                <strong>Cel:</strong> Niektórzy zawodnicy chcą grać razem lub nie chcą grać przeciwko sobie.
+            </div>
+
+            <h6 class="fw-bold">Jak ustawić grupy:</h6>
+            <ol>
+                <li>Przy edycji/dodawaniu zawodnika wybierz grupę z listy:</li>
+            </ol>
+            <div class="border p-3 rounded mb-4 bg-light">
+                <div class="form-check"><input class="form-check-input" type="radio" disabled checked/> <label class="form-check-label">Grupa 1 — zawsze razem</label></div>
+                <div class="form-check"><input class="form-check-input" type="radio" disabled/> <label class="form-check-label">Grupa 2 — zawsze razem</label></div>
+                <div class="form-check"><input class="form-check-input" type="radio" disabled/> <label class="form-check-label">Grupa 3 — zawsze razem</label></div>
+                <div class="form-check"><input class="form-check-input" type="radio" disabled/> <label class="form-check-label">Grupa 4 — zawsze razem</label></div>
+            </div>
+
+            <h6 class="fw-bold">Przykład konfiguracji:</h6>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="border rounded p-3">
+                        <strong class="text-success">Grupa 1 (zawsze razem):</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>🇵🇱 Jan Kowalski</li>
+                            <li>🇧🇷 Carlos Silva</li>
+                            <li>🇦🇷 Diego Martinez</li>
+                        </ul>
+                        <small class="text-muted">Wszyscy trafią do tej samej drużyny</small>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="border rounded p-3">
+                        <strong class="text-danger">Grupa 2 (zawsze razem):</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>🇩🇪 Hans Mueller</li>
+                            <li>🇳🇱 Jan van Berg</li>
+                        </ul>
+                        <small class="text-muted">Wszyscy trafią do tej samej drużyny</small>
+                    </div>
+                </div>
+            </div>
+
+            <h6 class="fw-bold mt-4">Dodawanie/edycja grupy:</h6>
+            <div class="alert alert-info">
+                W formularzu zawodnika: "Grupa (opcjonalnie)" → wybierz Gr. 1-4.
+                <br/>Zmień grupę klikając ✏️ przy zawodniku, wybierz inną grupę, kliknij Zapisz.
+            </div>
+        </div>
+    </div>
+
+    <!-- SEKCJA 5: Bramkarze -->
+    <div id="bramkarze" class="card mb-4 shadow-sm border-danger">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0"><i class="bi bi-shield-lock me-2"></i>5. Bramkarze (GK)</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-danger">
+                <strong>⚤ Specjalna rola:</strong> Bramkarze nie są brani pod uwagę przy obliczaniu siły składu!
+            </div>
+
+            <h6 class="fw-bold">Jak oznaczyć bramkarza:</h6>
+            <ol>
+                <li>Edytuj/dodaj zawodnika</li>
+                <li>W polu "Grupa" wybierz: <strong>🧤 Bramkarz (GK)</strong></li>
+                <li>Kliknij Zapisz</li>
+            </ol>
+
+            <h6 class="fw-bold mt-4">Wizualizacja:</h6>
+            <div class="border rounded p-3 bg-warning bg-opacity-10">
+                <div class="d-flex align-items-center">
+                    <span style="font-size:1.5rem">🧤</span>
+                    <strong style="font-size:1.1rem" class="ms-2">Piotr Nowak</strong>
+                    <span class="badge bg-warning ms-2 border">GK</span>
+                </div>
+                <small class="text-muted">Nie liczony do siły składu - automatycznie wybrany jako bramkarz</small>
+            </div>
+
+            <h6 class="fw-bold mt-4">W meczu:</h6>
+            <ul>
+                <li>Bramkarze są automatycznie zaznaczeni jako 🧤 w liście zawodników</li>
+                <li>Nie są brani pod uwagę przy balansowaniu siły drużyn</li>
+                <li>Mogą być ręcznie przypisani do konkretnej drużyny</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- SEKCJA 6: Statystyki i historia -->
+    <div id="statystyki" class="card mb-4 shadow-sm border-secondary">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>6. Statystyki i historia</h5>
+        </div>
+        <div class="card-body">
+            <h6 class="fw-bold">Historia meczów</h6>
+            <p>Wszystkie zapisane mecze są dostępne w zakładce "Historia meczów":</p>
+            <ul>
+                <li><strong>✏️ Wynik:</strong> Dodaj lub edytuj wynik meczu</li>
+                <li><strong>🗑️:</strong> Usuń mecz z historii</li>
+            </ul>
+
+            <h6 class="fw-bold mt-4">Przykład zapisanego meczu:</h6>
+            <div class="border rounded p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <strong>Czwartek 19:00 — Manhattan Park</strong>
+                    <span class="badge bg-success fs-6">3 : 1</span>
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <small class="text-success fw-bold">🟢 Drużyna 1</small>
+                        <ul class="small mb-0">
+                            <li>🇵🇱 Jan Kowalski</li>
+                            <li>🇧🇷 Carlos Silva</li>
+                        </ul>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-danger fw-bold">🔴 Drużyna 2</small>
+                        <ul class="small mb-0">
+                            <li>🇩🇪 Hans Mueller</li>
+                            <li>🇳🇱 Jan van Berg</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <h6 class="fw-bold mt-4">Statystyki zawodników</h6>
+            <p>W zakładce "Statystyki zawodników" możesz:</p>
+            <ul>
+                <li>Filtrować po nazwisku, narodowości, średniej ocenie, liczbie wystąpień</li>
+                <li>Sortować tabelę klikając w nagłówki kolumn</li>
+                <li>Zmieniać rozmiar kolumn przeciągając krawędzie nagłówków</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Kontakt/Feedback -->
+    <div class="card mb-4 border-info">
+        <div class="card-body text-center">
+            <p class="mb-0"><strong>Masz pytania lub sugestie?</strong></p>
+            <small class="text-muted">Skontaktuj się z administratorem systemu</small>
+        </div>
+    </div>
+</div>

@@ -426,3 +426,89 @@ h1:focus {
     --bs-table-border-color: #e8e8e8;
     color: #e8e8e8;
 }
+
+/* Fix light backgrounds in dark mode - HELP page specific */
+.theme-dark .bg-light {
+    background-color: #16213e !important;
+    color: #e8e8e8 !important;
+}
+
+/* Fix Bootstrap Icons color in dark mode */
+.theme-dark .bi {
+    color: #e8e8e8 !important;
+    fill: currentColor !important;
+}
+
+.theme-dark .nav-link .bi {
+    color: #e8e8e8 !important;
+    fill: currentColor !important;
+}
+
+.theme-dark .nav-link.active .bi {
+    color: #fff !important;
+    fill: currentColor !important;
+}
+
+/* Fix badge text color in dark mode */
+.theme-dark .badge {
+    color: #e8e8e8 !important;
+}
+
+.theme-dark .badge.bg-primary {
+    background-color: #0f3460 !important;
+    color: #e8e8e8 !important;
+}
+
+.theme-dark .badge.bg-light {
+    background-color: #444 !important;
+    color: #fff !important;
+}
+
+.theme-dark .table-light {
+    background-color: #0f3460 !important;
+    color: #e8e8e8 !important;
+}
+
+.theme-dark .thead-light {
+    background-color: #0f3460 !important;
+    color: #e8e8e8 !important;
+}
+
+.theme-dark .table-light th,
+.theme-dark .table-light td {
+    background-color: #0f3460 !important;
+    color: #e8e8e8 !important;
+}
+
+.theme-dark .border {
+    border-color: #0f3460 !important;
+}
+
+.theme-dark .border-primary {
+    border-color: #4a90d9 !important;
+}
+
+.theme-dark .border-success {
+    border-color: #4a9d5a !important;
+}
+
+.theme-dark .border-danger {
+    border-color: #d9534f !important;
+}
+
+.theme-dark .border-warning {
+    border-color: #d4a017 !important;
+}
+
+.theme-dark .border-info {
+    border-color: #5bc0de !important;
+}
+
+.theme-dark .border-secondary {
+    border-color: #666 !important;
+}
+
+.theme-dark .list-group-item {
+    background-color: #16213e !important;
+    color: #e8e8e8 !important;
+}
