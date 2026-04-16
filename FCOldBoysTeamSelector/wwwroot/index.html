@@ -26,6 +26,7 @@
     var path = params.get("p");
     if (path) {
       var base = document.querySelector('base').getAttribute('href').replace(/\/$/, '');
+      if (path.charAt(0) !== '/') path = '/' + path;
       history.replaceState(null, null, base + path + (params.get("q") ? "?" + params.get("q") : "") + window.location.hash);
     }
   })();
