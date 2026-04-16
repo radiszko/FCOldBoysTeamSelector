@@ -2,7 +2,7 @@
 @using FCOldBoysTeamSelector.Models
 @using FCOldBoysTeamSelector.Services
 @using FCOldBoysTeamSelector.Helpers
-@inject LocalStorageService Storage
+@inject IJSRuntime JS
 
 <PageTitle>Pomoc</PageTitle>
 
@@ -14,22 +14,22 @@
         <div class="card-body">
             <h6 class="fw-bold mb-3">Spis treści:</h6>
             <div class="list-group">
-                <a href="#szybki-start" class="list-group-item list-group-item-action">
+                <a href="javascript:void(0)" @onclick="OnSzybkiStartClick" class="list-group-item list-group-item-action">
                     <i class="bi bi-1 me-2"></i>Szybki start
                 </a>
-                <a href="#generowanie" class="list-group-item list-group-item-action">
+                <a href="javascript:void(0)" @onclick="OnGenerowanieClick" class="list-group-item list-group-item-action">
                     <i class="bi bi-2 me-2"></i>Generowanie składów
                 </a>
-                <a href="#zarzadzanie" class="list-group-item list-group-item-action">
+                <a href="javascript:void(0)" @onclick="OnZarzadzanieClick" class="list-group-item list-group-item-action">
                     <i class="bi bi-3 me-2"></i>Zarządzanie zawodnikami
                 </a>
-                <a href="#grupy" class="list-group-item list-group-item-action">
+                <a href="javascript:void(0)" @onclick="OnGrupyClick" class="list-group-item list-group-item-action">
                     <i class="bi bi-4 me-2"></i>System grupowania zawodników
                 </a>
-                <a href="#bramkarze" class="list-group-item list-group-item-action">
+                <a href="javascript:void(0)" @onclick="OnBramkarzeClick" class="list-group-item list-group-item-action">
                     <i class="bi bi-5 me-2"></i>Brankarze (GK)
                 </a>
-                <a href="#statystyki" class="list-group-item list-group-item-action">
+                <a href="javascript:void(0)" @onclick="OnStatystykiClick" class="list-group-item list-group-item-action">
                     <i class="bi bi-6 me-2"></i>Statystyki i historia
                 </a>
             </div>
@@ -347,3 +347,24 @@
         </div>
     </div>
 </div>
+
+@code {
+    private async Task OnSzybkiStartClick() => await ScrollToSection("szybki-start");
+    private async Task OnGenerowanieClick() => await ScrollToSection("generowanie");
+    private async Task OnZarzadzanieClick() => await ScrollToSection("zarzadzanie");
+    private async Task OnGrupyClick() => await ScrollToSection("grupy");
+    private async Task OnBramkarzeClick() => await ScrollToSection("bramkarze");
+    private async Task OnStatystykiClick() => await ScrollToSection("statystyki");
+
+    private async Task ScrollToSection(string sectionId)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("scrollToElement", sectionId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Scroll error: {ex.Message}");
+        }
+    }
+}

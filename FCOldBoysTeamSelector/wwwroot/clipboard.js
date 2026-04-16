@@ -55,3 +55,11 @@ window.setTheme = function (isDark) {
 window.getTheme = function () {
     return localStorage.getItem("theme") || "light";
 };
+
+// Scroll to element by ID
+window.scrollToElement = function (elementId) {
+    var element = document.getElementById(elementId);
+    if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+};

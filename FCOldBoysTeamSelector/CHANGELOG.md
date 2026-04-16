@@ -2,6 +2,13 @@
 
 Wszystkie istotne zmiany w tym projekcie będą dokumentowane w pliku CHANGELOG.md. Format oparty o [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.2.1] - 2026-04-15
+
+### Fixed
+- Naprawiono nawigację po spis treści w stronie Pomoc - anchor links teraz płynnie scrollują do odpowiednich sekcji
+
+---
+
 ## [1.1.0] - 2026-04-15
 
 ### Added
